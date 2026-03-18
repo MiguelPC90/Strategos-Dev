@@ -1,0 +1,913 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Dashboard PMO</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --navy:#002E5E;--green:#95BB42;
+  --bg:#fff;--bg2:#f5f6f7;--bg3:#eceef0;
+  --text:#1a1a18;--text2:#5c5c58;--text3:#9c9c96;
+  --border:rgba(0,0,0,0.09);--border2:rgba(0,0,0,0.16);
+  --r:8px;--rl:12px;
+  --blue:#185FA5;--red:#A32D2D;--red-bar:#E24B4A;--amber:#854F0B;
+}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg3);color:var(--text);font-size:14px;min-height:100vh}
+.shell{max-width:1200px;margin:0 auto;padding:2rem 1.5rem}
+.topbar{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1.75rem;flex-wrap:wrap;gap:1rem}
+.topbar h1{font-size:20px;font-weight:700;color:var(--navy)}.topbar p{font-size:12px;color:var(--text2);margin-top:3px}
+.topbar-actions{display:flex;gap:8px}
+.filter-bar{background:var(--bg);border:1px solid var(--border);border-radius:var(--rl);padding:14px 16px;margin-bottom:1.5rem;display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end}
+.fg{display:flex;flex-direction:column;gap:4px;min-width:140px;flex:1}
+.fg label{font-size:11px;color:var(--text2);font-weight:500;text-transform:uppercase;letter-spacing:.04em}
+.fg select,.fg input[type=date]{padding:7px 10px;font-size:13px;border:1px solid var(--border2);border-radius:var(--r);background:var(--bg);color:var(--text);font-family:inherit;cursor:pointer}
+.btn{padding:7px 14px;border-radius:var(--r);font-size:13px;cursor:pointer;border:1px solid var(--border2);background:var(--bg);color:var(--text);font-family:inherit}
+.btn:hover{background:var(--bg2)}
+.btn-primary{background:var(--navy);color:#fff;border-color:var(--navy)}
+.btn-primary:hover{opacity:.88}
+.filter-info{margin-left:auto;font-size:12px;color:var(--text2);align-self:flex-end;padding-bottom:2px}
+.main-tabs{display:flex;gap:2px;border-bottom:2px solid var(--border);margin-bottom:1.5rem}
+.main-tab{padding:9px 20px;font-size:13px;cursor:pointer;border:none;background:none;color:var(--text2);border-bottom:3px solid transparent;margin-bottom:-2px;font-family:inherit}
+.main-tab.active{color:var(--navy);border-bottom-color:var(--navy);font-weight:600}
+.main-section{display:none}.main-section.active{display:block}
+
+/* ── RESUMO ── */
+.resumo-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem}
+.card{background:var(--bg);border:1px solid var(--border);border-radius:var(--rl);padding:1.25rem}
+.card-title{font-size:11px;font-weight:600;color:var(--navy);margin-bottom:1rem;text-transform:uppercase;letter-spacing:.06em;display:flex;align-items:center;gap:6px}
+.card-title::before{content:'';display:inline-block;width:3px;height:14px;background:var(--navy);border-radius:2px}
+.kpi-2col{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.kpi-3col{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.kpi{background:var(--bg2);border-radius:var(--r);padding:.75rem 1rem}
+.kpi-lbl{font-size:11px;color:var(--text2);margin-bottom:4px;line-height:1.3}
+.kpi-val{font-size:20px;font-weight:700;line-height:1}
+.kpi-sub{font-size:10px;color:var(--text3);margin-top:3px}
+.kpi-pair{background:var(--bg2);border-radius:var(--r);padding:.75rem 1rem;display:grid;grid-template-columns:1fr 1fr;gap:0;border:1px solid var(--border)}
+.kpi-pair-item{padding:0 .5rem}
+.kpi-pair-item:first-child{border-right:1px solid var(--border);padding-left:0}
+.kpi-pair-lbl{font-size:10px;color:var(--text3);margin-bottom:3px;text-transform:uppercase;letter-spacing:.03em}
+.kpi-pair-val{font-size:17px;font-weight:700}
+
+/* section label */
+.sec-label{font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.sec-label i{display:inline-block;width:8px;height:8px;border-radius:50%}
+.charts-row{display:grid;grid-template-columns:1.5fr 1fr;gap:1rem;margin-bottom:1rem}
+.chart-legend{display:flex;gap:12px;margin-bottom:8px;flex-wrap:wrap}
+.chart-legend span{display:flex;align-items:center;gap:5px;font-size:12px;color:var(--text2)}
+.chart-legend b{width:10px;height:10px;border-radius:2px;flex-shrink:0;display:inline-block}
+
+/* ── TABLES ── */
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;font-weight:500;font-size:11px;color:var(--text2);padding:8px 10px;border-bottom:1px solid var(--border);text-transform:uppercase;letter-spacing:.04em;white-space:nowrap}
+th.c,td.c{text-align:center}
+td{padding:9px 10px;border-bottom:1px solid var(--border);color:var(--text);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:var(--bg2)}
+.badge{display:inline-block;padding:3px 8px;border-radius:4px;font-size:11px;font-weight:500;white-space:nowrap}
+.prog-wrap{height:5px;background:var(--bg3);border-radius:3px;overflow:hidden;display:inline-block;vertical-align:middle}
+.prog-fill{height:100%;border-radius:3px}
+.row-n1 td{font-weight:700;background:var(--bg2);color:var(--navy)}
+.row-n2 td{padding-left:20px;font-weight:500}
+.row-total td{font-weight:700;background:var(--bg3)}
+
+/* ── GANTT ── */
+.gantt-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.gantt-table{border-collapse:collapse;font-size:12px;min-width:900px}
+.gantt-table th{background:var(--navy);color:#fff;padding:7px 10px;font-size:11px;font-weight:500;white-space:nowrap;border-right:1px solid rgba(255,255,255,.15)}
+.gantt-table td{padding:5px 8px;border-bottom:1px solid var(--border);vertical-align:middle;white-space:nowrap}
+.gantt-table tr:hover td{background:rgba(0,46,94,.04)}
+.gantt-row-n1 td{background:rgba(0,46,94,.07);font-weight:700;color:var(--navy)}
+.gantt-row-n2 td{background:rgba(0,46,94,.03);font-weight:600}
+.gantt-row-n3 td{font-weight:500}
+.gantt-row-n4 td{color:var(--text2)}
+.toggle-btn{background:none;border:none;cursor:pointer;font-size:11px;padding:0 4px;color:var(--navy);font-weight:700;line-height:1}
+.gantt-name{max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.gantt-chart-cell{position:relative;height:28px;padding:0!important}
+.gantt-bar-wrap{position:absolute;top:0;left:0;right:0;bottom:0}
+.gantt-bar{position:absolute;height:8px;border-radius:3px}
+.gantt-bar-baseline{top:6px;opacity:.35}
+.gantt-bar-real{top:14px}
+.gantt-bar-single{top:10px;height:8px}
+.gantt-month-header{background:var(--navy);color:#fff;font-size:10px;text-align:center;padding:4px 2px;border-right:1px solid rgba(255,255,255,.15)}
+.gantt-today{position:absolute;top:0;bottom:0;width:1px;background:red;opacity:.7;z-index:10;pointer-events:none}
+.gantt-legend{display:flex;gap:16px;margin-bottom:10px;flex-wrap:wrap}
+.gantt-legend span{display:flex;align-items:center;gap:5px;font-size:12px;color:var(--text2)}
+.gantt-legend b{width:28px;height:8px;border-radius:3px;display:inline-block;flex-shrink:0}
+
+/* ── PDS ── */
+.pds-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:1rem}
+.pds-card{background:var(--bg);border:1px solid var(--border);border-radius:var(--rl);overflow:hidden}
+.pds-header{background:var(--navy);padding:12px 16px}
+.pds-eixo{font-size:11px;color:rgba(255,255,255,.6);margin-bottom:2px}
+.pds-plano{font-size:14px;font-weight:700;color:#fff}
+.pds-body{padding:14px 16px;display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.pds-sec{display:flex;flex-direction:column;gap:5px}
+.pds-sec-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;display:flex;align-items:center;gap:5px}
+.pds-sec-title i{width:6px;height:6px;border-radius:50%;display:inline-block;flex-shrink:0}
+.pds-text{font-size:12px;color:var(--text2);line-height:1.65;white-space:pre-line}
+.pds-na{font-size:12px;color:var(--text3);font-style:italic}
+
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;z-index:200}
+.modal-bg.open{display:flex}
+.modal{background:var(--bg);border-radius:var(--rl);border:1px solid var(--border);padding:1.75rem;width:min(520px,94vw);max-height:90vh;overflow-y:auto}
+.modal h2{font-size:16px;font-weight:700;margin-bottom:1.25rem;color:var(--navy)}
+.upload-zone{border:2px dashed var(--border2);border-radius:var(--rl);padding:2.5rem;text-align:center;cursor:pointer;color:var(--text2);font-size:13px}
+.upload-zone:hover{background:var(--bg2)}
+.btn-row{display:flex;gap:8px;justify-content:flex-end;margin-top:1.25rem}
+
+@media(max-width:900px){.resumo-grid,.charts-row{grid-template-columns:1fr}.kpi-2col,.kpi-3col{grid-template-columns:1fr 1fr}}
+@media(max-width:580px){.kpi-2col,.kpi-3col{grid-template-columns:1fr}.pds-body{grid-template-columns:1fr}}
+
+/* ── SETTINGS ── */
+.gear-btn{position:fixed;bottom:20px;right:20px;width:40px;height:40px;border-radius:50%;background:var(--navy);color:#fff;border:none;cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,.25)}
+.gear-btn:hover{opacity:.85}
+.settings-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:300;display:none;align-items:flex-start;justify-content:flex-end}
+.settings-overlay.open{display:flex}
+.settings-panel{background:var(--bg);width:min(420px,95vw);height:100vh;overflow-y:auto;box-shadow:-4px 0 24px rgba(0,0,0,.18);display:flex;flex-direction:column}
+.settings-header{background:var(--navy);padding:16px 20px;display:flex;justify-content:space-between;align-items:center;flex-shrink:0}
+.settings-header h2{color:#fff;font-size:16px;font-weight:700;margin:0}
+.settings-close{background:none;border:none;color:#fff;font-size:20px;cursor:pointer;padding:0;line-height:1}
+.settings-body{padding:20px;flex:1}
+.settings-section{margin-bottom:1.5rem}
+.settings-section-title{font-size:11px;font-weight:700;color:var(--navy);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px;padding-bottom:6px;border-bottom:2px solid var(--navy)}
+.settings-row{margin-bottom:12px}
+.settings-row label{display:block;font-size:12px;color:var(--text2);margin-bottom:4px;font-weight:500}
+.settings-row input[type=text],.settings-row input[type=date],.settings-row input[type=password]{width:100%;padding:8px 10px;font-size:13px;border:1px solid var(--border2);border-radius:var(--r);background:var(--bg);color:var(--text);font-family:inherit}
+.settings-row input[type=color]{width:48px;height:36px;border:1px solid var(--border2);border-radius:var(--r);cursor:pointer;padding:2px}
+.color-row{display:grid;grid-template-columns:36px 1fr 80px;gap:8px;align-items:center;margin-bottom:8px}
+.color-row input[type=text]{font-size:12px;font-family:monospace}
+.logo-preview{width:100%;max-height:80px;object-fit:contain;border:1px solid var(--border);border-radius:var(--r);padding:6px;margin-top:6px;display:none}
+.settings-footer{padding:16px 20px;border-top:1px solid var(--border);display:flex;gap:8px;flex-wrap:wrap;flex-shrink:0}
+.settings-footer .btn{flex:1;text-align:center;font-size:12px}
+.logo-area{display:flex;flex-direction:column;gap:6px}
+.topbar-logo{height:36px;object-fit:contain;display:none}
+
+</style>
+</head>
+<body>
+<div class="shell">
+<div class="topbar">
+  <div style="display:flex;align-items:center;gap:14px">
+    <img id="topbar-logo" class="topbar-logo" src="" alt="logo">
+    <div><h1 id="dash-title">Dashboard PMO</h1><p id="dash-subtitle">Plano Estratégico &nbsp;·&nbsp; <span id="lbl-today"></span> &nbsp;·&nbsp; Ref: <span id="lbl-ref">—</span></p></div>
+  </div>
+  <div class="topbar-actions"><button class="btn btn-primary" onclick="openUpload()">&#8593;&nbsp;Importar Excel</button></div>
+</div>
+
+<!-- FILTERS -->
+<div class="filter-bar" id="main-filter-bar">
+  <div class="fg"><label>Eixo</label><select id="f-n1" onchange="cascade();applyFilters()"><option value="">Todos</option></select></div>
+  <div class="fg"><label>Plano de Acção</label><select id="f-n2" onchange="applyFilters()"><option value="">Todos</option></select></div>
+  <div class="fg"><label>Owner</label><select id="f-owner" onchange="applyFilters()"><option value="">Todos</option></select></div>
+  <div class="fg"><label>Sponsor</label><select id="f-sponsor" onchange="applyFilters()"><option value="">Todos</option></select></div>
+  <div class="fg gantt-only" style="display:none"><label>Data início ≥</label><input type="date" id="f-date-start"></div>
+  <div class="fg gantt-only" style="display:none"><label>Data fim ≤</label><input type="date" id="f-date-end"></div>
+  <button class="btn" style="align-self:flex-end;font-size:12px;padding:7px 12px" onclick="resetFilters()">&#10005; Limpar</button>
+  <div class="filter-info">A mostrar <strong id="f-count">—</strong> actividades</div>
+</div>
+
+<!-- TABS -->
+<div class="main-tabs">
+  <button class="main-tab active" onclick="switchMain('resumo',this)">Resumo executivo</button>
+  <button class="main-tab" onclick="switchMain('actividades',this)">Actividades</button>
+  <button class="main-tab" onclick="switchMain('gantt',this)">Gantt</button>
+  <button class="main-tab" onclick="switchMain('pds',this)">Ponto de situação</button>
+</div>
+
+<!-- ═══════ RESUMO ═══════ -->
+<div id="resumo" class="main-section active">
+  <div class="resumo-grid">
+    <!-- Dados Gerais -->
+    <div class="card">
+      <div class="card-title">Dados Gerais</div>
+      <div class="kpi-2col" style="margin-bottom:8px">
+        <div class="kpi"><div class="kpi-lbl">Total actividades</div><div class="kpi-val" id="k-tot" style="color:var(--navy)">—</div><div class="kpi-sub">Nível 4</div></div>
+        <div class="kpi"><div class="kpi-lbl">Concluídas</div><div class="kpi-val" id="k-con" style="color:var(--blue)">—</div><div class="kpi-sub">Exec. = 100%</div></div>
+      </div>
+      <div class="kpi-2col">
+        <div class="kpi"><div class="kpi-lbl">Em dia</div><div class="kpi-val" id="k-dia" style="color:var(--green)">—</div><div class="kpi-sub">Prazo não ultrapassado</div></div>
+        <div class="kpi"><div class="kpi-lbl">Em atraso</div><div class="kpi-val" id="k-atr" style="color:var(--red)">—</div><div class="kpi-sub">Prazo ultrapassado</div></div>
+      </div>
+    </div>
+    <!-- Indicadores de Concretização -->
+    <div class="card">
+      <div class="card-title">Indicadores de Concretização</div>
+      <div style="margin-bottom:8px">
+        <div class="sec-label"><i style="background:var(--navy)"></i>Realizado</div>
+        <div class="kpi-3col">
+          <div class="kpi"><div class="kpi-lbl">Grau execução</div><div class="kpi-val" id="k-exe" style="color:var(--navy)">—</div><div class="kpi-sub">% real média</div></div>
+          <div class="kpi"><div class="kpi-lbl">Conc. geral</div><div class="kpi-val" id="k-cg" style="color:var(--navy)">—</div><div class="kpi-sub">Conc./total</div></div>
+          <div class="kpi"><div class="kpi-lbl">Conc. à data</div><div class="kpi-val" id="k-cd" style="color:var(--navy)">—</div><div class="kpi-sub">Conc./(c+a)</div></div>
+        </div>
+      </div>
+      <div>
+        <div class="sec-label"><i style="background:var(--green)"></i>Objectivo</div>
+        <div class="kpi-3col">
+          <div class="kpi" style="border:1px dashed var(--border2)"><div class="kpi-lbl">Grau execução obj.</div><div class="kpi-val" id="k-exe-obj" style="color:var(--green)">—</div><div class="kpi-sub">% prevista média</div></div>
+          <div class="kpi" style="border:1px dashed var(--border2)"><div class="kpi-lbl">Conc. geral obj.</div><div class="kpi-val" id="k-cg-obj" style="color:var(--green)">—</div><div class="kpi-sub">(c+a)/total</div></div>
+          <div class="kpi" style="border:1px dashed var(--border2)"><div class="kpi-lbl">Conc. data obj.</div><div class="kpi-val" style="color:var(--green)">100%</div><div class="kpi-sub">Meta</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="charts-row">
+    <div class="card">
+      <div class="card-title">Actividades por eixo — estado</div>
+      <div class="chart-legend">
+        <span><b style="background:var(--navy)"></b>Concluídas</span>
+        <span><b style="background:var(--green)"></b>Em dia</span>
+        <span><b style="background:var(--red-bar)"></b>Em atraso</span>
+      </div>
+      <div style="position:relative;height:190px"><canvas id="chart-bar"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Estado global</div>
+      <div style="position:relative;height:220px"><canvas id="chart-donut"></canvas></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Detalhe por eixo e plano de acção</div>
+    <div style="overflow-x:auto"><table>
+      <thead><tr>
+        <th>Eixo / Plano</th>
+        <th class="c">Total</th><th class="c" style="color:var(--blue)">Conc.</th>
+        <th class="c" style="color:var(--green)">Em dia</th><th class="c" style="color:var(--red)">Atraso</th>
+        <th class="c">Exec.</th><th class="c" style="color:var(--green)">Exec.obj.</th>
+        <th class="c">Conc.geral</th><th class="c" style="color:var(--green)">C.g.obj.</th>
+        <th class="c">Conc.data</th><th class="c" style="color:var(--green)">C.d.obj.</th>
+      </tr></thead>
+      <tbody id="tbl-eixo"></tbody>
+    </table></div>
+  </div>
+</div>
+
+<!-- ═══════ ACTIVIDADES ═══════ -->
+<div id="actividades" class="main-section">
+  <div style="overflow-x:auto"><table>
+    <thead><tr>
+      <th>Actividade</th><th>Eixo</th><th>Plano</th><th>Macroactividade</th>
+      <th>Owner</th><th>Sponsor</th><th class="c">Estado</th>
+      <th style="min-width:130px">Exec. real</th>
+      <th style="min-width:130px">Exec. prev.</th>
+      <th>Prazo</th>
+    </tr></thead>
+    <tbody id="tbl-act"></tbody>
+  </table></div>
+</div>
+
+<!-- ═══════ GANTT ═══════ -->
+<div id="gantt" class="main-section">
+  <div class="card" style="padding:1rem 1.25rem">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px">
+      <div class="gantt-legend">
+        <span><b style="background:rgba(0,46,94,.35)"></b>Baseline</span>
+        <span><b style="background:var(--navy)"></b>Real / Revisto</span>
+        <span><b style="background:1px solid red;background:rgba(255,0,0,.5);width:2px;height:16px;border-radius:0"></b>Hoje</span>
+      </div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        <button class="btn" style="font-size:11px;padding:5px 10px" onclick="collapseAll()">Colapsar tudo</button>
+        <button class="btn" style="font-size:11px;padding:5px 10px" onclick="expandAll()">Expandir tudo</button>
+      </div>
+    </div>
+    <div class="gantt-wrap">
+      <table class="gantt-table" id="gantt-table"></table>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════ PDS ═══════ -->
+<div id="pds" class="main-section">
+  <div id="pds-grid" class="pds-grid"></div>
+  <div id="pds-empty" style="display:none;text-align:center;padding:3rem;color:var(--text2)">Nenhum plano encontrado.</div>
+</div>
+</div>
+
+<!-- MODAL -->
+<div class="modal-bg" id="modal-upload">
+  <div class="modal">
+    <h2>Importar ficheiro Excel</h2>
+    <div class="upload-zone" onclick="document.getElementById('file-in').click()">
+      <div style="font-size:28px;margin-bottom:10px">&#8681;</div>
+      <div style="font-weight:600;margin-bottom:6px">Clique para seleccionar</div>
+      <div style="color:var(--text3);font-size:12px">.xlsx / .xls — folhas PMO Digital PE e PDS</div>
+    </div>
+    <input type="file" id="file-in" accept=".xlsx,.xls" style="display:none" onchange="handleFile(this)">
+    <div id="upload-msg" style="font-size:13px;color:var(--text2);margin-top:10px;min-height:20px"></div>
+    <div class="btn-row"><button class="btn" onclick="closeModal()">Fechar</button></div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+// ── DATA ──────────────────────────────────────────────────────────────────────
+let ALL_ACT = [{"nome":"Actividade 1.1","n1":"Eixo 1","n2":"#1 Plano de Acção 1","n3":"Macroactividade 1","id1":"1","id2":"1","pct":100.0,"pct_prev":100.0,"finish":"2025-02-21","status":"Concluído","sponsor":"Adm 1","owner":"DCH"},{"nome":"Actividade 1.2","n1":"Eixo 1","n2":"#1 Plano de Acção 1","n3":"Macroactividade 1","id1":"1","id2":"1","pct":100.0,"pct_prev":100.0,"finish":"2025-02-21","status":"Concluído","sponsor":"Adm 1","owner":"DCH"},{"nome":"Actividade 1.3","n1":"Eixo 1","n2":"#1 Plano de Acção 1","n3":"Macroactividade 1","id1":"1","id2":"1","pct":100.0,"pct_prev":100.0,"finish":"2025-04-08","status":"Concluído","sponsor":"Adm 1","owner":"DCH"},{"nome":"Actividade 2.1","n1":"Eixo 1","n2":"#1 Plano de Acção 1","n3":"Macroactividade 2","id1":"1","id2":"1","pct":50.0,"pct_prev":100.0,"finish":"2025-02-17","status":"Em atraso","sponsor":"Adm 1","owner":"DCH"},{"nome":"Actividade 2.2","n1":"Eixo 1","n2":"#1 Plano de Acção 1","n3":"Macroactividade 2","id1":"1","id2":"1","pct":40.0,"pct_prev":100.0,"finish":"2025-02-18","status":"Em atraso","sponsor":"Adm 1","owner":"DCH"},{"nome":"Actividade 2.3","n1":"Eixo 1","n2":"#1 Plano de Acção 1","n3":"Macroactividade 2","id1":"1","id2":"1","pct":30.0,"pct_prev":100.0,"finish":"2025-04-08","status":"Em atraso","sponsor":"Adm 1","owner":"DCH"},{"nome":"Actividade 2.1","n1":"Eixo 1","n2":"#1 Plano de Acção 1","n3":"Macroactividade 2","id1":"1","id2":"1","pct":50.0,"pct_prev":100.0,"finish":"2025-02-17","status":"Em atraso","sponsor":"Adm 1","owner":"DCH"},{"nome":"Actividade 2.2","n1":"Eixo 1","n2":"#1 Plano de Acção 1","n3":"Macroactividade 2","id1":"1","id2":"1","pct":40.0,"pct_prev":100.0,"finish":"2025-02-18","status":"Em atraso","sponsor":"Adm 1","owner":"DCH"},{"nome":"Actividade 2.3","n1":"Eixo 1","n2":"#1 Plano de Acção 1","n3":"Macroactividade 2","id1":"1","id2":"1","pct":30.0,"pct_prev":100.0,"finish":"2025-04-08","status":"Em atraso","sponsor":"Adm 1","owner":"DCH"},{"nome":"I | 4.1. Sessão Apresentação Dashboards CE","n1":"Eixo 2","n2":"#2 Plano de Acção 2","n3":"I | 4. Implementação Dashboards","id1":"2","id2":"2","pct":100.0,"pct_prev":100.0,"finish":"2026-02-02","status":"Concluído","sponsor":"Adm 2","owner":"DSI"},{"nome":"I | 4. 2.Desenho Dashboards","n1":"Eixo 2","n2":"#2 Plano de Acção 2","n3":"I | 4. Implementação Dashboards","id1":"2","id2":"2","pct":30.0,"pct_prev":100.0,"finish":"2026-02-27","status":"Em atraso","sponsor":"Adm 2","owner":"DSI"},{"nome":"I | 4.3. Implementação Dashboards","n1":"Eixo 2","n2":"#2 Plano de Acção 2","n3":"I | 4. Implementação Dashboards","id1":"2","id2":"2","pct":50.0,"pct_prev":100.0,"finish":"2026-03-20","status":"Em dia","sponsor":"Adm 2","owner":"DSI"},{"nome":"I | 4.4. Disponibilização Catálogo de KPI","n1":"Eixo 2","n2":"#2 Plano de Acção 2","n3":"I | 4. Implementação Dashboards","id1":"2","id2":"2","pct":0.0,"pct_prev":100.0,"finish":"2026-03-20","status":"Em dia","sponsor":"Adm 2","owner":"DSI"},{"nome":"I | 4.5. Caderno UAT Dashboards","n1":"Eixo 2","n2":"#2 Plano de Acção 2","n3":"I | 4. Implementação Dashboards","id1":"2","id2":"2","pct":0.0,"pct_prev":100.0,"finish":"2026-03-17","status":"Em atraso","sponsor":"Adm 2","owner":"DSI"},{"nome":"I | 4.6. Dados UAT Dashboards","n1":"Eixo 2","n2":"#2 Plano de Acção 2","n3":"I | 4. Implementação Dashboards","id1":"2","id2":"2","pct":0.0,"pct_prev":100.0,"finish":"2026-03-27","status":"Em dia","sponsor":"Adm 2","owner":"DSI"},{"nome":"I | 4.7. UAT Dashboards","n1":"Eixo 2","n2":"#2 Plano de Acção 2","n3":"I | 4. Implementação Dashboards","id1":"2","id2":"2","pct":0.0,"pct_prev":100.0,"finish":"2026-05-15","status":"Em dia","sponsor":"Adm 2","owner":"DSI"},{"nome":"I | 5.1. Validação Ambiente PRD","n1":"Eixo 2","n2":"#2 Plano de Acção 2","n3":"I | 5. Deploy PRD","id1":"2","id2":"2","pct":0.0,"pct_prev":100.0,"finish":"2026-02-20","status":"Em atraso","sponsor":"Adm 2","owner":"DSI"},{"nome":"I | 5.2. Check-list deploy","n1":"Eixo 2","n2":"#2 Plano de Acção 2","n3":"I | 5. Deploy PRD","id1":"2","id2":"2","pct":0.0,"pct_prev":100.0,"finish":"2026-02-20","status":"Em atraso","sponsor":"Adm 2","owner":"DSI"},{"nome":"I | 5.3. Revisão documentação","n1":"Eixo 2","n2":"#2 Plano de Acção 2","n3":"I | 5. Deploy PRD","id1":"2","id2":"2","pct":15.0,"pct_prev":100.0,"finish":"2026-03-27","status":"Em dia","sponsor":"Adm 2","owner":"DSI"},{"nome":"I | 5.4. Deploy PRD","n1":"Eixo 2","n2":"#2 Plano de Acção 2","n3":"I | 5. Deploy PRD","id1":"2","id2":"2","pct":0.0,"pct_prev":100.0,"finish":"2026-05-19","status":"Em dia","sponsor":"Adm 2","owner":"DSI"},{"nome":"I | 5.5. Hypercare","n1":"Eixo 2","n2":"#2 Plano de Acção 2","n3":"I | 5. Deploy PRD","id1":"2","id2":"2","pct":0.0,"pct_prev":61.5,"finish":"2026-06-30","status":"Em dia","sponsor":"Adm 2","owner":"DSI"},{"nome":"Actividade 1.1","n1":"Eixo 2","n2":"#3 Plano de Acção 3","n3":"Macroactividade 1","id1":"2","id2":"3","pct":100.0,"pct_prev":100.0,"finish":"2026-02-28","status":"Concluído","sponsor":"Adm 2","owner":"DIT"},{"nome":"Actividade 1.2","n1":"Eixo 2","n2":"#3 Plano de Acção 3","n3":"Macroactividade 1","id1":"2","id2":"3","pct":30.0,"pct_prev":63.3,"finish":"2026-04-30","status":"Em dia","sponsor":"Adm 2","owner":"DIT"},{"nome":"Actividade 1.3","n1":"Eixo 2","n2":"#3 Plano de Acção 3","n3":"Macroactividade 1","id1":"2","id2":"3","pct":50.0,"pct_prev":63.3,"finish":"2026-04-30","status":"Em dia","sponsor":"Adm 2","owner":"DIT"},{"nome":"Actividade 1.4","n1":"Eixo 2","n2":"#3 Plano de Acção 3","n3":"Macroactividade 1","id1":"2","id2":"3","pct":0.0,"pct_prev":0.0,"finish":"2026-06-30","status":"Em dia","sponsor":"Adm 2","owner":"DIT"},{"nome":"Actividade 2.1","n1":"Eixo 2","n2":"#3 Plano de Acção 3","n3":"Macroactividade 2","id1":"2","id2":"3","pct":0.0,"pct_prev":0.0,"finish":"2026-06-30","status":"Em dia","sponsor":"Adm 2","owner":"DIT"}];
+
+let ALL_GANTT = [{"nivel":1,"nome":"Eixo 1","n1":"Eixo 1","n2":"","n3":"","id1":"1","id2":"","bs":"2025-01-13","bf":"2026-10-31","rs":"2025-01-13","rf":"2025-11-17","pct":46.0,"pct_prev":100.0,"status":"","sponsor":"","owner":""},{"nivel":2,"nome":"#1 Plano de Acção 1","n1":"Eixo 1","n2":"#1 Plano de Acção 1","n3":"","id1":"1","id2":"1","bs":"2025-02-04","bf":"2025-10-31","rs":"2025-02-02","rf":"2025-08-20","pct":66.0,"pct_prev":100.0,"status":"","sponsor":"Adm 1","owner":"DCH"},{"nivel":3,"nome":"Macroactividade 1","n1":"Eixo 1","n2":"#1 Plano de Acção 1","n3":"Macroactividade 1","id1":"1","id2":"1","bs":"2025-02-04","bf":"2025-02-15","rs":"2025-02-13","rf":"2025-04-08","pct":100.0,"pct_prev":100.0,"status":"","sponsor":"Adm 1","owner":"DCH"},{"nivel":4,"nome":"Actividade 1.1","n1":"Eixo 1","n2":"#1 Plano de Acção 1","n3":"Macroactividade 1","id1":"1","id2":"1","bs":"2025-02-04","bf":"2025-02-06","rs":"2025-02-13","rf":"2025-02-21","pct":100.0,"pct_prev":100.0,"status":"Concluído","sponsor":"Adm 1","owner":"DCH"},{"nivel":4,"nome":"Actividade 1.2","n1":"Eixo 1","n2":"#1 Plano de Acção 1","n3":"Macroactividade 1","id1":"1","id2":"1","bs":"2025-02-04","bf":"2025-02-11","rs":"2025-02-13","rf":"2025-02-21","pct":100.0,"pct_prev":100.0,"status":"Concluído","sponsor":"Adm 1","owner":"DCH"},{"nivel":4,"nome":"Actividade 1.3","n1":"Eixo 1","n2":"#1 Plano de Acção 1","n3":"Macroactividade 1","id1":"1","id2":"1","bs":"2025-02-13","bf":"2025-02-15","rs":"2025-02-13","rf":"2025-04-08","pct":100.0,"pct_prev":100.0,"status":"Concluído","sponsor":"Adm 1","owner":"DCH"},{"nivel":3,"nome":"Macroactividade 2","n1":"Eixo 1","n2":"#1 Plano de Acção 1","n3":"Macroactividade 2","id1":"1","id2":"1","bs":"2025-02-15","bf":"2025-02-23","rs":"2025-02-02","rf":"2025-04-21","pct":100.0,"pct_prev":100.0,"status":"","sponsor":"Adm 1","owner":"DCH"},{"nivel":4,"nome":"Actividade 2.1","n1":"Eixo 1","n2":"#1 Plano de Acção 1","n3":"Macroactividade 2","id1":"1","id2":"1","bs":"2025-02-15","bf":"2025-02-17","rs":"2025-02-15","rf":"2025-02-17","pct":50.0,"pct_prev":100.0,"status":"Em atraso","sponsor":"Adm 1","owner":"DCH"},{"nivel":4,"nome":"Actividade 2.2","n1":"Eixo 1","n2":"#1 Plano de Acção 1","n3":"Macroactividade 2","id1":"1","id2":"1","bs":"2025-02-17","bf":"2025-02-19","rs":"2025-02-15","rf":"2025-02-18","pct":40.0,"pct_prev":100.0,"status":"Em atraso","sponsor":"Adm 1","owner":"DCH"},{"nivel":4,"nome":"Actividade 2.3","n1":"Eixo 1","n2":"#1 Plano de Acção 1","n3":"Macroactividade 2","id1":"1","id2":"1","bs":"2025-02-19","bf":"2025-02-21","rs":"2025-02-25","rf":"2025-04-08","pct":30.0,"pct_prev":100.0,"status":"Em atraso","sponsor":"Adm 1","owner":"DCH"},{"nivel":1,"nome":"Eixo 2","n1":"Eixo 2","n2":"","n3":"","id1":"2","id2":"","bs":"2025-01-13","bf":"2026-10-31","rs":"2025-01-13","rf":"2025-11-17","pct":46.0,"pct_prev":81.7,"status":"","sponsor":"","owner":""},{"nivel":2,"nome":"#2 Plano de Acção 2","n1":"Eixo 2","n2":"#2 Plano de Acção 2","n3":"","id1":"2","id2":"2","bs":"2025-02-04","bf":"2025-10-31","rs":"2025-02-02","rf":"2025-08-20","pct":66.0,"pct_prev":96.8,"status":"","sponsor":"Adm 2","owner":"DSI"},{"nivel":3,"nome":"I | 4. Implementação Dashboards","n1":"Eixo 2","n2":"#2 Plano de Acção 2","n3":"I | 4. Implementação Dashboards","id1":"2","id2":"2","bs":"2025-09-01","bf":"2025-09-30","rs":"2026-01-19","rf":"2026-05-15","pct":5.0,"pct_prev":100.0,"status":"","sponsor":"Adm 2","owner":"DSI"},{"nivel":4,"nome":"I | 4.1. Sessão Apresentação Dashboards CE","n1":"Eixo 2","n2":"#2 Plano de Acção 2","n3":"I | 4. Implementação Dashboards","id1":"2","id2":"2","bs":"2025-09-01","bf":"2025-09-30","rs":"2026-01-19","rf":"2026-02-02","pct":100.0,"pct_prev":100.0,"status":"Concluído","sponsor":"Adm 2","owner":"DSI"},{"nivel":4,"nome":"I | 4.2. Desenho Dashboards","n1":"Eixo 2","n2":"#2 Plano de Acção 2","n3":"I | 4. Implementação Dashboards","id1":"2","id2":"2","bs":"2025-09-01","bf":"2025-09-30","rs":"2026-02-09","rf":"2026-02-27","pct":30.0,"pct_prev":100.0,"status":"Em atraso","sponsor":"Adm 2","owner":"DSI"},{"nivel":4,"nome":"I | 4.3. Implementação Dashboards","n1":"Eixo 2","n2":"#2 Plano de Acção 2","n3":"I | 4. Implementação Dashboards","id1":"2","id2":"2","bs":"2025-09-01","bf":"2025-09-30","rs":"2026-02-23","rf":"2026-03-20","pct":50.0,"pct_prev":100.0,"status":"Em dia","sponsor":"Adm 2","owner":"DSI"},{"nivel":4,"nome":"I | 4.4. Catálogo KPI","n1":"Eixo 2","n2":"#2 Plano de Acção 2","n3":"I | 4. Implementação Dashboards","id1":"2","id2":"2","bs":"2025-09-01","bf":"2025-09-30","rs":"2026-03-16","rf":"2026-03-20","pct":0.0,"pct_prev":100.0,"status":"Em dia","sponsor":"Adm 2","owner":"DSI"},{"nivel":4,"nome":"I | 4.5. Caderno UAT","n1":"Eixo 2","n2":"#2 Plano de Acção 2","n3":"I | 4. Implementação Dashboards","id1":"2","id2":"2","bs":"2025-09-01","bf":"2025-09-30","rs":"2026-02-23","rf":"2026-03-17","pct":0.0,"pct_prev":100.0,"status":"Em atraso","sponsor":"Adm 2","owner":"DSI"},{"nivel":4,"nome":"I | 4.6. Dados UAT","n1":"Eixo 2","n2":"#2 Plano de Acção 2","n3":"I | 4. Implementação Dashboards","id1":"2","id2":"2","bs":"2025-09-01","bf":"2025-09-30","rs":"2026-03-23","rf":"2026-03-27","pct":0.0,"pct_prev":100.0,"status":"Em dia","sponsor":"Adm 2","owner":"DSI"},{"nivel":4,"nome":"I | 4.7. UAT Dashboards","n1":"Eixo 2","n2":"#2 Plano de Acção 2","n3":"I | 4. Implementação Dashboards","id1":"2","id2":"2","bs":"2025-09-01","bf":"2025-09-30","rs":"2026-04-06","rf":"2026-05-15","pct":0.0,"pct_prev":100.0,"status":"Em dia","sponsor":"Adm 2","owner":"DSI"},{"nivel":3,"nome":"I | 5. Deploy PRD","n1":"Eixo 2","n2":"#2 Plano de Acção 2","n3":"I | 5. Deploy PRD","id1":"2","id2":"2","bs":"2025-10-01","bf":"2025-10-30","rs":"2026-02-02","rf":"2026-06-05","pct":7.0,"pct_prev":92.3,"status":"","sponsor":"Adm 2","owner":"DSI"},{"nivel":4,"nome":"I | 5.1. Validação PRD","n1":"Eixo 2","n2":"#2 Plano de Acção 2","n3":"I | 5. Deploy PRD","id1":"2","id2":"2","bs":"2025-10-01","bf":"2025-10-30","rs":"2026-02-09","rf":"2026-02-20","pct":0.0,"pct_prev":100.0,"status":"Em atraso","sponsor":"Adm 2","owner":"DSI"},{"nivel":4,"nome":"I | 5.2. Check-list deploy","n1":"Eixo 2","n2":"#2 Plano de Acção 2","n3":"I | 5. Deploy PRD","id1":"2","id2":"2","bs":"2025-10-01","bf":"2025-10-30","rs":"2026-02-09","rf":"2026-02-20","pct":0.0,"pct_prev":100.0,"status":"Em atraso","sponsor":"Adm 2","owner":"DSI"},{"nivel":4,"nome":"I | 5.3. Revisão documentação","n1":"Eixo 2","n2":"#2 Plano de Acção 2","n3":"I | 5. Deploy PRD","id1":"2","id2":"2","bs":"2025-10-01","bf":"2025-10-30","rs":"2026-02-02","rf":"2026-03-27","pct":15.0,"pct_prev":100.0,"status":"Em dia","sponsor":"Adm 2","owner":"DSI"},{"nivel":4,"nome":"I | 5.4. Deploy PRD","n1":"Eixo 2","n2":"#2 Plano de Acção 2","n3":"I | 5. Deploy PRD","id1":"2","id2":"2","bs":"2025-10-01","bf":"2025-10-30","rs":"2026-03-16","rf":"2026-05-19","pct":0.0,"pct_prev":100.0,"status":"Em dia","sponsor":"Adm 2","owner":"DSI"},{"nivel":4,"nome":"I | 5.5. Hypercare","n1":"Eixo 2","n2":"#2 Plano de Acção 2","n3":"I | 5. Deploy PRD","id1":"2","id2":"2","bs":"2025-10-01","bf":"2026-06-30","rs":"2026-03-23","rf":"2026-06-30","pct":0.0,"pct_prev":61.5,"status":"Em dia","sponsor":"Adm 2","owner":"DSI"},{"nivel":2,"nome":"#3 Plano de Acção 3","n1":"Eixo 2","n2":"#3 Plano de Acção 3","n3":"","id1":"2","id2":"3","bs":"2025-02-04","bf":"2025-10-31","rs":"2025-02-02","rf":"2025-08-20","pct":66.0,"pct_prev":45.3,"status":"","sponsor":"Adm 2","owner":"DIT"},{"nivel":3,"nome":"Macroactividade 1","n1":"Eixo 2","n2":"#3 Plano de Acção 3","n3":"Macroactividade 1","id1":"2","id2":"3","bs":"2025-09-01","bf":"2025-09-30","rs":"2026-01-19","rf":"2026-05-15","pct":5.0,"pct_prev":56.7,"status":"","sponsor":"Adm 2","owner":"DIT"},{"nivel":4,"nome":"Actividade 1.1","n1":"Eixo 2","n2":"#3 Plano de Acção 3","n3":"Macroactividade 1","id1":"2","id2":"3","bs":"2026-01-01","bf":"2026-02-28","rs":"","rf":"","pct":100.0,"pct_prev":100.0,"status":"Concluído","sponsor":"Adm 2","owner":"DIT"},{"nivel":4,"nome":"Actividade 1.2","n1":"Eixo 2","n2":"#3 Plano de Acção 3","n3":"Macroactividade 1","id1":"2","id2":"3","bs":"2026-01-01","bf":"2026-04-30","rs":"","rf":"","pct":30.0,"pct_prev":63.3,"status":"Em dia","sponsor":"Adm 2","owner":"DIT"},{"nivel":4,"nome":"Actividade 1.3","n1":"Eixo 2","n2":"#3 Plano de Acção 3","n3":"Macroactividade 1","id1":"2","id2":"3","bs":"2026-01-01","bf":"2026-04-30","rs":"","rf":"","pct":50.0,"pct_prev":63.3,"status":"Em dia","sponsor":"Adm 2","owner":"DIT"},{"nivel":4,"nome":"Actividade 1.4","n1":"Eixo 2","n2":"#3 Plano de Acção 3","n3":"Macroactividade 1","id1":"2","id2":"3","bs":"2026-05-01","bf":"2026-06-30","rs":"","rf":"","pct":0.0,"pct_prev":0.0,"status":"Em dia","sponsor":"Adm 2","owner":"DIT"},{"nivel":3,"nome":"Macroactividade 2","n1":"Eixo 2","n2":"#3 Plano de Acção 3","n3":"Macroactividade 2","id1":"2","id2":"3","bs":"2025-09-01","bf":"2025-09-30","rs":"2026-01-19","rf":"2026-05-15","pct":5.0,"pct_prev":0.0,"status":"","sponsor":"Adm 2","owner":"DIT"},{"nivel":4,"nome":"Actividade 2.1","n1":"Eixo 2","n2":"#3 Plano de Acção 3","n3":"Macroactividade 2","id1":"2","id2":"3","bs":"2026-05-01","bf":"2026-06-30","rs":"","rf":"","pct":0.0,"pct_prev":0.0,"status":"Em dia","sponsor":"Adm 2","owner":"DIT"}];
+
+let ALL_PDS=[{"id1":"1","id2":"1","plano":"#1 Plano de Acção 1","compromissos":"- Compromisso 1\n- Compromisso 2","avancos":"- Avanço 1","proximos":"- Próximo passo 1","atencao":"N/A","n1":"Eixo 1"},{"id1":"2","id2":"2","plano":"#2 Plano de Acção 2","compromissos":"- Compromisso 1\n- Compromisso 2","avancos":"- Avanço 1\n- Avanço 2","proximos":"- Próximo passo 1","atencao":"- Ponto de atenção 1","n1":"Eixo 2"},{"id1":"2","id2":"3","plano":"#3 Plano de Acção 3","compromissos":"- Compromisso 1\n- Compromisso 2\n- Compromisso 3","avancos":"- Avanço 1\n- Avanço 2\n- Avanço 3","proximos":"- Próximo passo 1\n- Próximo passo 2","atencao":"N/A","n1":"Eixo 2"}];
+
+let filteredAct=[...ALL_ACT],filteredGantt=[...ALL_GANTT],filteredPDS=[...ALL_PDS];
+let charts={};
+const COLLAPSED={};
+
+const SC={"Concluído":{bg:"#E6F1FB",tc:"#185FA5",bar:"#002E5E"},"Em dia":{bg:"#EAF3DE",tc:"#3B6D11",bar:"#95BB42"},"Em atraso":{bg:"#FCEBEB",tc:"#A32D2D",bar:"#E24B4A"}};
+
+document.getElementById("lbl-today").textContent="Actualizado: "+new Date().toLocaleDateString("pt-PT");
+
+// ── FILTERS ───────────────────────────────────────────────────────────────────
+function buildFilters(src){
+  const fill=(id,vals)=>{const el=document.getElementById(id),cur=el.value;el.innerHTML=`<option value="">Todos</option>`+vals.map(v=>`<option value="${v}"${v===cur?' selected':''}>${v}</option>`).join('');};
+  fill("f-n1",[...new Set(src.map(d=>d.n1))].sort());
+  fill("f-n2",[...new Set(src.map(d=>d.n2))].sort());
+  fill("f-owner",[...new Set(src.map(d=>d.owner).filter(Boolean))].sort());
+  fill("f-sponsor",[...new Set(src.map(d=>d.sponsor).filter(Boolean))].sort());
+}
+function cascade(){
+  const n1=document.getElementById("f-n1").value,cur=document.getElementById("f-n2").value;
+  const base=n1?ALL_ACT.filter(d=>d.n1===n1):ALL_ACT;
+  document.getElementById("f-n2").innerHTML=`<option value="">Todos</option>`+[...new Set(base.map(d=>d.n2))].sort().map(v=>`<option value="${v}"${v===cur?' selected':''}>${v}</option>`).join('');
+}
+function applyFilters(){
+  const n1=document.getElementById("f-n1").value,n2=document.getElementById("f-n2").value,
+        own=document.getElementById("f-owner").value,spn=document.getElementById("f-sponsor").value,
+        ds=document.getElementById("f-date-start").value,de=document.getElementById("f-date-end").value;
+  filteredAct=ALL_ACT.filter(d=>(!n1||d.n1===n1)&&(!n2||d.n2===n2)&&(!own||d.owner===own)&&(!spn||d.sponsor===spn));
+  filteredGantt=ALL_GANTT.filter(d=>{
+    if(n1&&d.n1!==n1)return false;
+    if(n2&&d.n2!==n2&&d.nome!==n2)return false;
+    if(own&&d.owner&&d.owner!==own)return false;
+    if(spn&&d.sponsor&&d.sponsor!==spn)return false;
+    if(ds||de){
+      const start=d.rs||d.bs,end=d.rf||d.bf;
+      if(ds&&end&&end<ds)return false;
+      if(de&&start&&start>de)return false;
+    }
+    return true;
+  });
+  filteredPDS=ALL_PDS.filter(p=>(!n1||p.n1===n1)&&(!n2||p.plano===n2));
+  document.getElementById("f-count").textContent=filteredAct.length;
+  renderAll();
+}
+function resetFilters(){
+  ["f-n1","f-n2","f-owner","f-sponsor","f-date-start","f-date-end"].forEach(id=>document.getElementById(id).value="");
+  cascade();applyFilters();
+}
+
+// ── KPI ───────────────────────────────────────────────────────────────────────
+function kpi(data){
+  const n=data.length,con=data.filter(d=>d.status==="Concluído").length,
+        dia=data.filter(d=>d.status==="Em dia").length,atr=data.filter(d=>d.status==="Em atraso").length;
+  const exe=n?data.reduce((s,d)=>s+d.pct,0)/n:0;
+  const exeObj=n?data.reduce((s,d)=>s+d.pct_prev,0)/n:0;
+  const cg=n?con/n:0,cgObj=n?(con+atr)/n:0,cd=(con+atr)?con/(con+atr):0;
+  return{n,con,dia,atr,exe,exeObj,cg,cgObj,cd};
+}
+function p(v){return(v*100).toFixed(1)+"%";}
+function renderKPIs(k){
+  document.getElementById("k-tot").textContent=k.n;
+  document.getElementById("k-con").textContent=k.con;
+  document.getElementById("k-dia").textContent=k.dia;
+  document.getElementById("k-atr").textContent=k.atr;
+  document.getElementById("k-exe").textContent=k.exe.toFixed(1)+"%";
+  document.getElementById("k-cg").textContent=p(k.cg);
+  document.getElementById("k-cd").textContent=p(k.cd);
+  document.getElementById("k-exe-obj").textContent=k.exeObj.toFixed(1)+"%";
+  document.getElementById("k-cg-obj").textContent=p(k.cgObj);
+}
+
+// ── CHARTS ────────────────────────────────────────────────────────────────────
+function renderCharts(data){
+  Object.values(charts).forEach(c=>{try{c.destroy()}catch(e){}});charts={};
+  const eixos=[...new Set(data.map(d=>d.n1))].sort();
+  charts.bar=new Chart(document.getElementById("chart-bar"),{type:"bar",
+    data:{labels:eixos,datasets:[
+      {label:"Concluídas",data:eixos.map(e=>data.filter(d=>d.n1===e&&d.status==="Concluído").length),backgroundColor:"#002E5E",borderRadius:3,borderWidth:0},
+      {label:"Em dia",data:eixos.map(e=>data.filter(d=>d.n1===e&&d.status==="Em dia").length),backgroundColor:"#95BB42",borderRadius:3,borderWidth:0},
+      {label:"Em atraso",data:eixos.map(e=>data.filter(d=>d.n1===e&&d.status==="Em atraso").length),backgroundColor:"#E24B4A",borderRadius:3,borderWidth:0}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
+      scales:{x:{stacked:true,ticks:{font:{size:12}}},y:{stacked:true,ticks:{stepSize:1,font:{size:11}}}}}});
+  const k=kpi(data);
+  charts.donut=new Chart(document.getElementById("chart-donut"),{type:"doughnut",
+    data:{labels:["Concluídas","Em dia","Em atraso"],datasets:[{data:[k.con,k.dia,k.atr],backgroundColor:["#002E5E","#95BB42","#E24B4A"],borderWidth:0}]},
+    options:{responsive:true,maintainAspectRatio:false,cutout:"62%",plugins:{legend:{position:"bottom",labels:{font:{size:11},boxWidth:10,padding:10}}}}});
+}
+
+// ── EIXO TABLE ────────────────────────────────────────────────────────────────
+function buildRow(k,label,indent,cls){
+  return`<tr class="${cls}"><td style="padding-left:${indent}px">${label}</td>
+    <td class="c">${k.n}</td><td class="c" style="color:#185FA5">${k.con}</td>
+    <td class="c" style="color:#3B6D11">${k.dia}</td><td class="c" style="color:#A32D2D">${k.atr}</td>
+    <td class="c">${k.exe.toFixed(1)}%</td><td class="c" style="color:#95BB42">${k.exeObj.toFixed(1)}%</td>
+    <td class="c">${p(k.cg)}</td><td class="c" style="color:#95BB42">${p(k.cgObj)}</td>
+    <td class="c">${p(k.cd)}</td><td class="c" style="color:#95BB42">100%</td></tr>`;
+}
+function renderEixoTable(data){
+  let html="";
+  [...new Set(data.map(d=>d.n1))].sort().forEach(n1=>{
+    const d1=data.filter(d=>d.n1===n1);
+    html+=buildRow(kpi(d1),n1,10,"row-n1");
+    [...new Set(d1.map(d=>d.n2))].sort().forEach(n2=>html+=buildRow(kpi(d1.filter(d=>d.n2===n2)),n2,22,"row-n2"));
+  });
+  html+=buildRow(kpi(data),"Total geral",10,"row-total");
+  document.getElementById("tbl-eixo").innerHTML=html;
+}
+
+// ── ACTIVITIES ────────────────────────────────────────────────────────────────
+function pb(v,c){return`<div style="display:flex;align-items:center;gap:6px"><div class="prog-wrap" style="width:72px"><div class="prog-fill" style="width:${v}%;background:${c}"></div></div><span style="font-size:12px;color:var(--text2)">${v}%</span></div>`;}
+function renderActivities(data){
+  const tbody=document.getElementById("tbl-act");
+  if(!data.length){tbody.innerHTML=`<tr><td colspan="10" style="text-align:center;color:var(--text2);padding:2rem">Nenhuma actividade encontrada.</td></tr>`;return;}
+  tbody.innerHTML=data.map(d=>{const s=SC[d.status]||SC["Em dia"];return`<tr>
+    <td style="font-weight:500;max-width:230px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${d.nome}">${d.nome}</td>
+    <td style="font-size:12px;color:var(--text2);white-space:nowrap">${d.n1}</td>
+    <td style="font-size:12px;color:var(--text2);max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${d.n2}">${d.n2}</td>
+    <td style="font-size:12px;color:var(--text2);max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${d.n3}">${d.n3}</td>
+    <td style="font-size:12px;white-space:nowrap">${d.owner||'—'}</td>
+    <td style="font-size:12px;white-space:nowrap">${d.sponsor||'—'}</td>
+    <td class="c"><span class="badge" style="background:${s.bg};color:${s.tc}">${d.status}</span></td>
+    <td>${pb(d.pct,s.bar)}</td><td>${pb(d.pct_prev,'#95BB42')}</td>
+    <td style="font-size:12px;color:var(--text2);white-space:nowrap">${d.finish||'—'}</td>
+  </tr>`;}).join('');
+}
+
+// ── GANTT ─────────────────────────────────────────────────────────────────────
+function d2t(s){return s?new Date(s).getTime():null;}
+function ganttPct(start,end,rangeStart,rangeMs){
+  if(!start||!end)return{l:0,w:0};
+  const s=Math.max(d2t(start),rangeStart),e=Math.min(d2t(end),rangeStart+rangeMs);
+  if(e<=s)return{l:0,w:0};
+  return{l:((d2t(start)-rangeStart)/rangeMs*100).toFixed(2),w:((d2t(end)-d2t(start))/rangeMs*100).toFixed(2)};
+}
+
+function renderGantt(data){
+  const tbl=document.getElementById("gantt-table");
+  if(!data.length){tbl.innerHTML='<tr><td colspan="20" style="padding:2rem;text-align:center;color:var(--text2)">Nenhum dado disponível.</td></tr>';return;}
+
+  // Date range
+  const dsEl=document.getElementById("f-date-start").value;
+  const deEl=document.getElementById("f-date-end").value;
+  const allDates=data.flatMap(r=>[r.bs,r.bf,r.rs,r.rf].filter(Boolean));
+  let rangeMin=dsEl||allDates.reduce((a,b)=>a<b?a:b);
+  let rangeMax=deEl||allDates.reduce((a,b)=>a>b?a:b);
+  const rangeStart=d2t(rangeMin),rangeEnd=d2t(rangeMax);
+  const rangeMs=rangeEnd-rangeStart;
+  const today=new Date().toISOString().split('T')[0];
+  const todayPct=((d2t(today)-rangeStart)/rangeMs*100).toFixed(2);
+
+  // Build months header
+  const months=[];
+  let cur=new Date(rangeMin); cur.setDate(1);
+  const end=new Date(rangeMax);
+  while(cur<=end){months.push({y:cur.getFullYear(),m:cur.getMonth()});cur=new Date(cur.getFullYear(),cur.getMonth()+1,1);}
+
+  // Month widths in pct
+  const monthWidths=months.map(mo=>{
+    const ms=Math.max(new Date(mo.y,mo.m,1).getTime(),rangeStart);
+    const me=Math.min(new Date(mo.y,mo.m+1,1).getTime(),rangeEnd);
+    return Math.max(0,(me-ms)/rangeMs*100);
+  });
+  const MNAMES=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+
+  // Fixed col width for info cols
+  const INFO_W=560; // px total for name+pct+dates+status cols
+  const CHART_W='100%';
+
+  let html=`<colgroup><col style="width:200px"><col style="width:55px"><col style="width:85px"><col style="width:85px"><col style="width:80px"><col style="min-width:400px"></colgroup>`;
+  // Header row 1
+  html+=`<thead><tr>
+    <th rowspan="2">Designação</th>
+    <th rowspan="2" style="text-align:center">% Exec.</th>
+    <th rowspan="2" style="text-align:center">Início</th>
+    <th rowspan="2" style="text-align:center">Fim</th>
+    <th rowspan="2" style="text-align:center">Estado</th>
+    <th colspan="${months.length}" style="text-align:center;padding:6px">Timeline</th>
+  </tr><tr>`;
+  months.forEach((mo,i)=>{
+    if(monthWidths[i]>0.3)html+=`<th class="gantt-month-header" style="width:${monthWidths[i].toFixed(1)}%">${MNAMES[mo.m]}<br><span style="font-size:9px;opacity:.7">${mo.y}</span></th>`;
+  });
+  html+=`</tr></thead><tbody>`;
+
+  // Collapse tracking: key = "n"+nivel+"_"+idx
+  function isVisible(row,idx){
+    // check if any ancestor is collapsed
+    if(row.nivel===1)return true;
+    // find parent n1 index
+    let p1=-1;
+    for(let i=idx-1;i>=0;i--){if(data[i].nivel===1){p1=i;break;}}
+    if(p1>=0&&COLLAPSED['1_'+p1])return false;
+    if(row.nivel===2)return true;
+    let p2=-1;
+    for(let i=idx-1;i>=0;i--){if(data[i].nivel===2){p2=i;break;}}
+    if(p2>=0&&COLLAPSED['2_'+p2])return false;
+    if(row.nivel===3)return true;
+    let p3=-1;
+    for(let i=idx-1;i>=0;i--){if(data[i].nivel===3){p3=i;break;}}
+    if(p3>=0&&COLLAPSED['3_'+p3])return false;
+    return true;
+  }
+
+  function hasChildren(idx){
+    if(idx+1>=data.length)return false;
+    return data[idx+1].nivel>data[idx].nivel;
+  }
+
+  data.forEach((row,idx)=>{
+    if(!isVisible(row,idx))return;
+    const n=row.nivel;
+    const cls=`gantt-row-n${n}`;
+    const indent=(n-1)*14;
+    const colKey=`${n}_${idx}`;
+    const collapsed=COLLAPSED[colKey];
+    const canToggle=hasChildren(idx);
+    const toggleBtn=canToggle?`<button class="toggle-btn" onclick="toggleRow('${colKey}')" title="${collapsed?'Expandir':'Colapsar'}">${collapsed?'▶':'▼'}</button> `:'  ';
+    const nameStyle=`padding-left:${indent+4}px;`;
+
+    // Status badge
+    const s=SC[row.status];
+    const statCell=row.status?`<span class="badge" style="background:${s.bg};color:${s.tc};font-size:10px">${row.status}</span>`:'—';
+
+    // Gantt bars
+    const hasBaseline=row.bs&&row.bf;
+    const hasReal=row.rs&&row.rf;
+    const bl=hasBaseline?ganttPct(row.bs,row.bf,rangeStart,rangeMs):{l:0,w:0};
+    const rl=hasReal?ganttPct(row.rs,row.rf,rangeStart,rangeMs):{l:0,w:0};
+
+    let barsHtml='';
+    if(hasBaseline&&bl.w>0) barsHtml+=`<div class="gantt-bar gantt-bar-baseline" style="left:${bl.l}%;width:${bl.w}%;background:var(--navy)"></div>`;
+    if(hasReal&&rl.w>0) barsHtml+=`<div class="gantt-bar gantt-bar-real" style="left:${rl.l}%;width:${rl.w}%;background:${n<=2?'var(--navy)':(row.status==='Concluído'?'var(--navy)':row.status==='Em dia'?'var(--green)':'var(--red-bar)')}"></div>`;
+    if(!hasBaseline&&!hasReal&&row.bs) barsHtml+=`<div class="gantt-bar gantt-bar-single" style="left:${bl.l}%;width:${bl.w}%;background:var(--navy)"></div>`;
+    const todayLine=`<div class="gantt-today" style="left:${todayPct}%"></div>`;
+
+    const displayDate=d=>d?d.substring(5).replace('-','/'):'—';
+    const startD=row.rs||row.bs,endD=row.rf||row.bf;
+
+    // build month cells for chart
+    let chartCells='';
+    months.forEach((mo,i)=>{
+      if(monthWidths[i]<=0.3)return;
+      chartCells+=`<td style="padding:0;position:relative;border-right:1px solid var(--border)"></td>`;
+    });
+
+    // Actually use single spanning chart cell
+    html+=`<tr class="${cls}" data-idx="${idx}">
+      <td class="gantt-name" style="${nameStyle}">${toggleBtn}${row.nome}</td>
+      <td style="text-align:center;font-size:11px">${row.pct}%</td>
+      <td style="text-align:center;font-size:11px;color:var(--text2)">${displayDate(startD)}</td>
+      <td style="text-align:center;font-size:11px;color:var(--text2)">${displayDate(endD)}</td>
+      <td style="text-align:center">${statCell}</td>
+      <td class="gantt-chart-cell" colspan="${months.filter((_,i)=>monthWidths[i]>0.3).length}">
+        <div class="gantt-bar-wrap">${barsHtml}${todayLine}</div>
+      </td>
+    </tr>`;
+  });
+  html+=`</tbody>`;
+  tbl.innerHTML=html;
+}
+
+function toggleRow(key){
+  COLLAPSED[key]=!COLLAPSED[key];
+  renderGantt(filteredGantt);
+}
+function collapseAll(){
+  ALL_GANTT.forEach((r,i)=>{if(r.nivel<4)COLLAPSED[`${r.nivel}_${i}`]=true;});
+  renderGantt(filteredGantt);
+}
+function expandAll(){
+  Object.keys(COLLAPSED).forEach(k=>delete COLLAPSED[k]);
+  renderGantt(filteredGantt);
+}
+
+// ── PDS ───────────────────────────────────────────────────────────────────────
+const PDS_SEC=[
+  {key:'compromissos',label:'Compromissos anteriores',color:'#185FA5'},
+  {key:'avancos',label:'Principais avanços',color:'#95BB42'},
+  {key:'proximos',label:'Próximos passos',color:'#854F0B'},
+  {key:'atencao',label:'Pontos de atenção',color:'#E24B4A'},
+];
+function isNA(v){return !v||v.trim()==='N/A'||v.trim()==='';}
+function renderPDS(pdsData){
+  const grid=document.getElementById("pds-grid"),empty=document.getElementById("pds-empty");
+  if(!pdsData.length){grid.style.display='none';empty.style.display='block';return;}
+  grid.style.display='grid';empty.style.display='none';
+  grid.innerHTML=pdsData.map(p=>`<div class="pds-card">
+    <div class="pds-header"><div class="pds-eixo">${p.n1}</div><div class="pds-plano">${p.plano}</div></div>
+    <div class="pds-body">${PDS_SEC.map(s=>`<div class="pds-sec">
+      <div class="pds-sec-title" style="color:${s.color}"><i style="background:${s.color}"></i>${s.label}</div>
+      ${isNA(p[s.key])?`<div class="pds-na">N/A</div>`:`<div class="pds-text">${p[s.key]}</div>`}
+    </div>`).join('')}</div>
+  </div>`).join('');
+}
+
+// ── RENDER ALL ────────────────────────────────────────────────────────────────
+function renderAll(){
+  renderKPIs(kpi(filteredAct));
+  renderCharts(filteredAct);
+  renderEixoTable(filteredAct);
+  renderActivities(filteredAct);
+  renderGantt(filteredGantt);
+  renderPDS(filteredPDS);
+}
+
+// ── TABS ──────────────────────────────────────────────────────────────────────
+function switchMain(id,btn){
+  document.querySelectorAll(".main-section").forEach(s=>s.classList.remove("active"));
+  document.querySelectorAll(".main-tab").forEach(t=>t.classList.remove("active"));
+  document.getElementById(id).classList.add("active");btn.classList.add("active");
+  // show/hide date filters
+  document.querySelectorAll(".gantt-only").forEach(el=>el.style.display=id==='gantt'?'flex':'none');
+  if(id==="resumo")setTimeout(()=>renderCharts(filteredAct),50);
+  if(id==="gantt")setTimeout(()=>renderGantt(filteredGantt),50);
+}
+
+function openUpload(){document.getElementById("modal-upload").classList.add("open");}
+function closeModal(){document.getElementById("modal-upload").classList.remove("open");}
+
+// ── FILE IMPORT ───────────────────────────────────────────────────────────────
+function handleFile(input){
+  const file=input.files[0];if(!file)return;
+  const msg=document.getElementById("upload-msg");msg.textContent="A processar...";
+  const reader=new FileReader();
+  reader.onload=e=>{
+    try{
+      const wb=XLSX.read(e.target.result,{type:"binary",cellDates:true});
+      const ws1=wb.Sheets[wb.SheetNames[0]];
+      const raw=XLSX.utils.sheet_to_json(ws1,{header:1,raw:false,defval:""});
+      let hi=-1;for(let i=0;i<raw.length;i++){if(raw[i].includes("Nível")&&raw[i].includes("Actividades")){hi=i;break;}}
+      if(hi===-1){msg.textContent="Cabeçalhos não encontrados.";return;}
+      const h=raw[hi];
+      const c=n=>h.findIndex(x=>x&&x.toString().toLowerCase().includes(n.toLowerCase()));
+      const iN=c("Nível"),iA=c("Actividades"),iP=c("% Complete"),
+            iBs=h.findIndex(x=>x==="Start"),iBf=h.findIndex(x=>x==="Finish"),
+            iRs=c("Start Revisto"),iRf=c("Finish Revisto"),
+            iSp=c("Sponsor"),iOw=c("Owner"),iPv=c("Execução Prevista"),
+            iI1=h.findIndex(x=>x==="ID1"),iI2=h.findIndex(x=>x==="ID2");
+      const today=new Date();today.setHours(0,0,0,0);
+      const parsedAct=[],parsedGantt=[];
+      let cn1="",cn2="",cn3="",csp="",cow="",ci1="",ci2="";
+      const fmt=v=>{if(!v)return'';const d=new Date(v);return isNaN(d)?'':d.toISOString().split('T')[0];};
+      for(let i=hi+1;i<raw.length;i++){
+        const r=raw[i];if(!r[iN])continue;
+        const nivel=r[iN].toString().trim(),nome=(r[iA]||"").toString().trim();if(!nome)continue;
+        const sp=(r[iSp]||"").toString().trim(),ow=(r[iOw]||"").toString().trim();
+        if(nivel==="Nível 1"){cn1=nome;csp=sp;cow=ow;ci1=(r[iI1]||"").toString();}
+        else if(nivel==="Nível 2"){cn2=nome;if(sp)csp=sp;if(ow)cow=ow;ci2=(r[iI2]||"").toString();}
+        else if(nivel==="Nível 3"){cn3=nome;}
+        const ni=parseInt(nivel.replace('Nível ',''));
+        let pR=parseFloat(r[iP]||0)||0;if(pR>1)pR/=100;
+        let pP=iPv>=0?(parseFloat(r[iPv]||0)||0):0;if(pP>1)pP/=100;
+        const bs=fmt(r[iBs]),bf=fmt(r[iBf]),rs=fmt(r[iRs]),rf=fmt(r[iRf]);
+        const finishD=rf||bf;let fd=null;if(finishD){const d=new Date(finishD);if(!isNaN(d)){d.setHours(0,0,0,0);fd=d;}}
+        const status=pR>=1?"Concluído":fd&&fd>today?"Em dia":"Em atraso";
+        const entry={nivel:ni,nome,n1:cn1,n2:cn2,n3:cn3,id1:ci1,id2:ci2,
+          bs,bf,rs,rf,pct:Math.round(pR*1000)/10,pct_prev:Math.round(pP*1000)/10,
+          status:ni===4?status:'',sponsor:sp||csp,owner:ow||cow};
+        parsedGantt.push(entry);
+        if(ni===4)parsedAct.push({nome,n1:cn1,n2:cn2,n3:cn3,id1:ci1,id2:ci2,
+          pct:entry.pct,pct_prev:entry.pct_prev,finish:finishD,status,sponsor:sp||csp,owner:ow||cow});
+      }
+      if(!parsedAct.length){msg.textContent="Nenhuma actividade N4 encontrada.";return;}
+      let parsedPDS=[];
+      if(wb.SheetNames.length>1){
+        const ws2=wb.Sheets[wb.SheetNames[1]];
+        const r2=XLSX.utils.sheet_to_json(ws2,{header:1,raw:false,defval:""});
+        let hi2=-1;for(let i=0;i<r2.length;i++){if(r2[i].some(x=>["Compromissos","ID1","Plano de Acção"].includes(x))){hi2=i;break;}}
+        if(hi2>=0){
+          const h2=r2[hi2];
+          const c2=n=>h2.findIndex(x=>x&&x.toString().toLowerCase().includes(n.toLowerCase()));
+          const iId1=h2.findIndex(x=>x==="ID1"),iId2=h2.findIndex(x=>x==="ID2"),
+                iPl=c2("Plano"),iCo=c2("Compromisso"),iAv=c2("Avanço"),iPx=c2("Próximo"),iAt=c2("Atenção");
+          const n1m={};parsedAct.forEach(d=>{n1m[d.id2]=d.n1;});
+          for(let i=hi2+1;i<r2.length;i++){
+            const r=r2[i];if(!r[iId1])continue;
+            const id2=(r[iId2]||"").toString();
+            parsedPDS.push({id1:(r[iId1]||"").toString(),id2,plano:(r[iPl]||"").toString(),
+              compromissos:(r[iCo]||"").toString(),avancos:(r[iAv]||"").toString(),
+              proximos:(r[iPx]||"").toString(),atencao:(r[iAt]||"").toString(),n1:n1m[id2]||""});
+          }
+        }
+      }
+      ALL_ACT=parsedAct;ALL_GANTT=parsedGantt;ALL_PDS=parsedPDS;
+      buildFilters(ALL_ACT);applyFilters();
+      msg.textContent=`✓ ${parsedAct.length} actividades, ${parsedGantt.length} linhas Gantt, ${parsedPDS.length} planos PDS.`;
+    }catch(err){msg.textContent="Erro: "+err.message;}
+  };
+  reader.readAsBinaryString(file);
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+buildFilters(ALL_ACT);
+applyFilters();
+
+// ── SETTINGS ─────────────────────────────────────────────────────────────────
+const DEFAULT_CFG = {
+  title: 'Dashboard PMO',
+  subtitle: 'Plano Estratégico',
+  refDate: '',
+  logo: '',
+  colors: [
+    {label:'Cor primária (navy)',    key:'--navy',   val:'#002E5E'},
+    {label:'Cor secundária (verde)', key:'--green',  val:'#95BB42'},
+    {label:'Cor de alerta',          key:'--red-bar',val:'#E24B4A'},
+    {label:'Cor de destaque',        key:'--amber',  val:'#854F0B'},
+    {label:'Cor de informação',      key:'--blue',   val:'#185FA5'},
+  ]
+};
+
+let CFG = JSON.parse(JSON.stringify(DEFAULT_CFG));
+
+function loadCfg(){
+  try{
+    const s=localStorage.getItem('pmo_cfg');
+    if(s) CFG=JSON.parse(s);
+  }catch(e){}
+}
+
+function saveCfg(){
+  try{localStorage.setItem('pmo_cfg',JSON.stringify(CFG));}catch(e){}
+}
+
+function buildColorRows(){
+  const wrap=document.getElementById('color-rows');
+  wrap.innerHTML=CFG.colors.map((c,i)=>`
+    <div class="color-row">
+      <input type="color" value="${c.val}" id="color-picker-${i}" oninput="syncColorHex(${i})">
+      <div>
+        <div style="font-size:11px;color:var(--text2);margin-bottom:3px">${c.label}</div>
+        <input type="text" id="color-hex-${i}" value="${c.val}" placeholder="#000000" style="font-size:12px;font-family:monospace;padding:5px 8px" oninput="syncColorPicker(${i})">
+      </div>
+    </div>`).join('');
+}
+
+function syncColorHex(i){
+  document.getElementById('color-hex-'+i).value=document.getElementById('color-picker-'+i).value;
+}
+function syncColorPicker(i){
+  const v=document.getElementById('color-hex-'+i).value;
+  if(/^#[0-9A-Fa-f]{6}$/.test(v)) document.getElementById('color-picker-'+i).value=v;
+}
+
+function applyColors(){
+  CFG.colors.forEach(c=>document.documentElement.style.setProperty(c.key,c.val));
+}
+
+function applySettings(){
+  // Read from inputs
+  CFG.title=document.getElementById('cfg-title').value||'Dashboard PMO';
+  CFG.subtitle=document.getElementById('cfg-subtitle').value||'Plano Estratégico';
+  CFG.refDate=document.getElementById('cfg-ref-date').value||'';
+  CFG.colors.forEach((c,i)=>{
+    const v=document.getElementById('color-hex-'+i).value;
+    if(/^#[0-9A-Fa-f]{6}$/.test(v)) CFG.colors[i].val=v;
+  });
+  applyAll();
+  saveCfg();
+  closeSettings();
+}
+
+function applyAll(){
+  // Title
+  document.getElementById('dash-title').textContent=CFG.title;
+  document.title=CFG.title;
+  document.getElementById('dash-subtitle').innerHTML=CFG.subtitle+' &nbsp;·&nbsp; <span id="lbl-today"></span> &nbsp;·&nbsp; Ref: <span id="lbl-ref">'+(CFG.refDate||'—')+'</span>';
+  document.getElementById('lbl-today').textContent=new Date().toLocaleDateString('pt-PT');
+  // Logo
+  const logo=document.getElementById('topbar-logo');
+  if(CFG.logo){logo.src=CFG.logo;logo.style.display='block';}
+  else{logo.style.display='none';}
+  // Colors
+  applyColors();
+  // Ref date label
+  const refEl=document.getElementById('lbl-ref');
+  if(refEl) refEl.textContent=CFG.refDate||'—';
+}
+
+function previewLogo(input){
+  const file=input.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    CFG.logo=e.target.result;
+    const prev=document.getElementById('cfg-logo-preview');
+    prev.src=e.target.result;prev.style.display='block';
+  };
+  reader.readAsDataURL(file);
+}
+
+function removeLogo(){
+  CFG.logo='';
+  document.getElementById('cfg-logo-preview').style.display='none';
+  document.getElementById('cfg-logo-file').value='';
+}
+
+function populatePanel(){
+  document.getElementById('cfg-title').value=CFG.title;
+  document.getElementById('cfg-subtitle').value=CFG.subtitle;
+  document.getElementById('cfg-ref-date').value=CFG.refDate||'';
+  if(CFG.logo){
+    const prev=document.getElementById('cfg-logo-preview');
+    prev.src=CFG.logo;prev.style.display='block';
+  }
+  buildColorRows();
+}
+
+function openSettings(){
+  populatePanel();
+  document.getElementById('settings-overlay').classList.add('open');
+}
+function closeSettings(){document.getElementById('settings-overlay').classList.remove('open');}
+
+function exportSettings(){
+  const exp={...CFG};delete exp.logo; // don't export logo (too large)
+  const blob=new Blob([JSON.stringify(exp,null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download='pmo_settings.json';a.click();
+}
+
+function importSettings(input){
+  const file=input.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    try{
+      const parsed=JSON.parse(e.target.result);
+      // merge preserving logo
+      const logo=CFG.logo;
+      CFG={...DEFAULT_CFG,...parsed};
+      if(logo&&!parsed.logo)CFG.logo=logo;
+      applyAll();saveCfg();
+      populatePanel();
+      alert('Definições importadas com sucesso.');
+    }catch(err){alert('Erro ao importar: '+err.message);}
+  };
+  reader.readAsText(file);
+  input.value='';
+}
+
+function resetSettings(){
+  if(!confirm('Repor todas as definições para os valores predefinidos?'))return;
+  CFG=JSON.parse(JSON.stringify(DEFAULT_CFG));
+  applyAll();saveCfg();populatePanel();
+  closeSettings();
+}
+
+// Init settings on load
+loadCfg();
+applyAll();
+
+</script>
+
+<!-- GEAR BUTTON -->
+<button class="gear-btn" onclick="openSettings()" title="Definições">&#9881;</button>
+
+<!-- SETTINGS PANEL -->
+<div class="settings-overlay" id="settings-overlay" onclick="if(event.target===this)closeSettings()">
+  <div class="settings-panel">
+    <div class="settings-header">
+      <h2>&#9881; Definições</h2>
+      <button class="settings-close" onclick="closeSettings()">&#10005;</button>
+    </div>
+    <div class="settings-body">
+
+      <div class="settings-section">
+        <div class="settings-section-title">Identidade</div>
+        <div class="settings-row">
+          <label>Título do dashboard</label>
+          <input type="text" id="cfg-title" placeholder="Dashboard PMO">
+        </div>
+        <div class="settings-row">
+          <label>Sub-título / nome do plano</label>
+          <input type="text" id="cfg-subtitle" placeholder="Plano Estratégico">
+        </div>
+        <div class="settings-row">
+          <label>Data de referência do reporte</label>
+          <input type="date" id="cfg-ref-date">
+        </div>
+        <div class="settings-row logo-area">
+          <label>Logo da empresa</label>
+          <input type="file" id="cfg-logo-file" accept="image/*" onchange="previewLogo(this)" style="font-size:12px">
+          <img id="cfg-logo-preview" class="logo-preview" alt="logo preview">
+          <button class="btn" style="font-size:11px;padding:5px 10px;color:var(--red);border-color:var(--red)" onclick="removeLogo()">Remover logo</button>
+        </div>
+      </div>
+
+      <div class="settings-section">
+        <div class="settings-section-title">Cores</div>
+        <div id="color-rows"></div>
+      </div>
+
+    </div>
+    <div class="settings-footer">
+      <button class="btn" onclick="applySettings()">&#10003; Aplicar</button>
+      <button class="btn" onclick="exportSettings()">&#8595; Exportar JSON</button>
+      <button class="btn" onclick="document.getElementById('import-json').click()">&#8593; Importar JSON</button>
+      <button class="btn" style="color:var(--red);border-color:var(--red)" onclick="resetSettings()">&#8635; Repor</button>
+      <input type="file" id="import-json" accept=".json" style="display:none" onchange="importSettings(this)">
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
