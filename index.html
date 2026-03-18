@@ -263,8 +263,8 @@ tr:hover td{background:var(--bg2)}
         <div class="slbl"><i style="background:var(--navy)"></i>Realizado</div>
         <div class="g3">
           <div class="k"><div class="kl">Grau execução</div><div class="kv" id="k-exe" style="color:var(--navy)">—</div><div class="ks">% real média</div></div>
-          <div class="k"><div class="kl">Conc. geral</div><div class="kv" id="k-cg" style="color:var(--navy)">—</div><div class="ks">Conc./total</div></div>
-          <div class="k"><div class="kl">Conc. à data</div><div class="kv" id="k-cd" style="color:var(--navy)">—</div><div class="ks">Conc./(c+a)</div></div>
+          <div class="k"><div class="kl">Conc. geral</div><div class="kv" id="k-cg" style="color:var(--navy)">—</div><div class="ks">N.º Actividades Concluídas / Total de Actividades</div></div>
+          <div class="k"><div class="kl">Conc. à data</div><div class="kv" id="k-cd" style="color:var(--navy)">—</div><div class="ks">N.º Actividades Concluídas / (N.º Actividades Concluídas + N.º Actividades Em Atraso)</div></div>
         </div>
       </div>
       <div>
@@ -895,9 +895,9 @@ function renderPDS(){
     <div class="card" style="margin-bottom:0;padding:1rem">
       <div class="ctitle" style="margin-bottom:.75rem">Concretização</div>
       <div class="g2">
-        <div class="k"><div class="kl">Geral real</div><div class="kv" style="color:var(--navy)">${pp(k.cg)}</div><div class="ks">Conc./total</div></div>
-        <div class="k obj"><div class="kl">Geral obj.</div><div class="kv" style="color:var(--green)">${pp(k.cgo)}</div><div class="ks">(c+a)/total</div></div>
-        <div class="k"><div class="kl">À data real</div><div class="kv" style="color:var(--navy)">${pp(k.cd)}</div><div class="ks">Conc./(c+a)</div></div>
+        <div class="k"><div class="kl">Geral real</div><div class="kv" style="color:var(--navy)">${pp(k.cg)}</div><div class="ks">N.º Actividades Concluídas / Total de Actividades</div></div>
+        <div class="k obj"><div class="kl">Geral obj.</div><div class="kv" style="color:var(--green)">${pp(k.cgo)}</div><div class="ks">(N.º Actividades Concluídas + N.º Actividades Em Atraso) / Total de Actividades</div></div>
+        <div class="k"><div class="kl">À data real</div><div class="kv" style="color:var(--navy)">${pp(k.cd)}</div><div class="ks">N.º Actividades Concluídas / (N.º Actividades Concluídas + N.º Actividades Em Atraso)</div></div>
         <div class="k obj"><div class="kl">À data obj.</div><div class="kv" style="color:var(--green)">100%</div><div class="ks">Meta</div></div>
       </div>
     </div>`;
