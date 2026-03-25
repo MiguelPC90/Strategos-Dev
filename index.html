@@ -1251,11 +1251,7 @@ function adjustSpacer(){
 }
 window.addEventListener('resize',adjustSpacer);
 window.addEventListener('load',adjustSpacer);
-document.addEventListener('DOMContentLoaded',function(){
-  adjustSpacer();
-  setTimeout(adjustSpacer,100);
-  setTimeout(adjustSpacer,500);
-});
+document.addEventListener('DOMContentLoaded',adjustSpacer);
 // Use ResizeObserver for dynamic height changes
 if(typeof ResizeObserver!=='undefined'){
   const ftEl=document.querySelector('.fixed-top');
@@ -1271,12 +1267,13 @@ function buildMs(id,vals){
   [...cur].forEach(v=>{if(!vals.includes(v))cur.delete(v);});
   dd.innerHTML='';
   // For N1 filter: show N0 group separators
+  // Pre-build Map to avoid O(n²) lookup inside forEach
+  const n1ToN0 = id==='n1' ? new Map(ALL_ACT.map(function(d){return [d.n1, d.n0||''];})) : null;
   let lastN0 = null;
   vals.forEach(function(v){
     if(id==='n1'){
       // Find which N0 this N1 belongs to
-      const entry = ALL_ACT.find(function(d){return d.n1===v;});
-      const n0 = entry ? (entry.n0||'') : '';
+      const n0 = n1ToN0.get(v) || '';
       const n0s = MS_STATE['n0']||new Set();
       if(n0 && n0!==lastN0 && (!n0s.size || n0s.size>1)){
         // Add N0 separator
@@ -1340,18 +1337,6 @@ document.addEventListener('click',e=>{
   if(!e.target.closest('.ms-wrap') && !e.target.closest('.ms-dropdown'))
     document.querySelectorAll('.ms-dropdown').forEach(d=>d.classList.remove('open'));
 });
-
-function cascadeN1(){
-  // When N0 changes, filter available N1s
-  const n0s=MS_STATE['n0'];
-  let base=ALL_ACT;
-  if(n0s&&n0s.size>0) base=base.filter(function(d){return n0s.has(d.n0||'');});
-  // Remove any N1 selections that no longer apply
-  const validN1s=new Set(base.map(function(d){return d.n1;}));
-  if(MS_STATE['n1']) [...MS_STATE['n1']].forEach(function(v){if(!validN1s.has(v))MS_STATE['n1'].delete(v);});
-  buildMs('n1', sortByHierarchy([...new Set(base.map(function(d){return d.n1;}))], base, 'n1', 'id1'));
-  cascadeN2();
-}
 
 function cascadeN1(){
   // When N0 changes, filter N1 and N2 options accordingly
@@ -2050,8 +2035,8 @@ function buildPdsSelector(){
     src.map(function(p,si){
       // Store id0_id2 composite key as value — stable across re-imports
       const key=(p.id0||'')+'_'+p.id2;
-      const prefix=(p.n0?p.n0+' › ':'')+p.n1+' › ';
-      return '<option value="'+key+'">'+prefix+p.plano+'</option>';
+      const prefix=(p.n0?esc(p.n0)+' › ':'')+esc(p.n1)+' › ';
+      return '<option value="'+esc(key)+'">'+prefix+esc(p.plano)+'</option>';
     }).join('');
   // Restore previous selection if still valid
   if(pdsCurrentKey){
@@ -3680,8 +3665,8 @@ function initGPDS(){
     ALL_PDS.map(function(p){
       const key=(p.id0||'')+'_'+p.id2;
       const prefix = (p.n0 ? esc(p.n0)+' › ' : '') + (p.n1 ? esc(p.n1)+' › ' : '');
-      return '<option value="'+key+'">'+prefix+esc(p.plano)+'</option>';
-    }).join('');;
+      return '<option value="'+esc(key)+'">'+prefix+esc(p.plano)+'</option>';
+    }).join('');
 }
 
 function loadGPDS(){
@@ -3891,8 +3876,8 @@ function initGRisk(){
     ALL_PDS.map(function(p){
       const key=(p.id0||'')+'_'+p.id2;
       const prefix = (p.n0 ? esc(p.n0)+' › ' : '') + (p.n1 ? esc(p.n1)+' › ' : '');
-      return '<option value="'+key+'">'+prefix+esc(p.plano)+'</option>';
-    }).join('');;
+      return '<option value="'+esc(key)+'">'+prefix+esc(p.plano)+'</option>';
+    }).join('');
 }
 
 function getCurrentRiskPDS(){
@@ -4705,8 +4690,8 @@ function initGFin(){
   sel.innerHTML='<option value="">— seleccionar plano —</option>'+
     ALL_PDS.map(function(p){
       const key=(p.id0||'')+'_'+p.id2;
-      const prefix=(p.n0?p.n0+' › ':'')+p.n1+' › ';
-      return '<option value="'+key+'">'+prefix+p.plano+'</option>';
+      const prefix=(p.n0?esc(p.n0)+' › ':'')+esc(p.n1)+' › ';
+      return '<option value="'+esc(key)+'">'+prefix+esc(p.plano)+'</option>';
     }).join('');
   const sec=document.getElementById('gestao-financeira');
   if(!sec._finDelegate){
@@ -5199,8 +5184,8 @@ function initExecFin(){
     ALL_PDS.filter(function(p){ return p.finances && (p.finances.rubricas&&p.finances.rubricas.length || p.finances.contratos&&p.finances.contratos.length); })
     .map(function(p){
       const key = (p.id0||'')+'_'+p.id2;
-      const prefix = (p.n0?p.n0+' › ':'')+p.n1+' › ';
-      return '<option value="'+key+'">'+prefix+p.plano+'</option>';
+      const prefix = (p.n0?esc(p.n0)+' › ':'')+esc(p.n1)+' › ';
+      return '<option value="'+esc(key)+'">'+prefix+esc(p.plano)+'</option>';
     }).join('');
   selP.value = curP;
 
