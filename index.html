@@ -1433,6 +1433,21 @@ function buildAllFilters(src){
   buildMs('status',['Concluído','Em dia','Em atraso']);
 }
 
+const FILTER_LABEL_DEFAULTS={n1:'Eixo',n2:'Plano de Acção',owner:'Owner',sponsor:'Sponsor'};
+function getFilterLabel(dim,n0){
+  if(n0&&CFG.filterLabels&&CFG.filterLabels[n0]&&CFG.filterLabels[n0][dim])
+    return CFG.filterLabels[n0][dim];
+  return FILTER_LABEL_DEFAULTS[dim]||dim;
+}
+function updateFilterLabels(){
+  const n0s=MS_STATE['n0']||new Set();
+  const n0=n0s.size===1?[...n0s][0]:null;
+  ['n1','n2','owner','sponsor'].forEach(function(d){
+    const wrap=document.getElementById('ms-'+d+'-wrap');
+    if(wrap) wrap.querySelector('.ms-label').textContent=getFilterLabel(d,n0);
+  });
+}
+
 function applyFilters(){
   const n0s=MS_STATE['n0']||new Set();
   const n1s=MS_STATE['n1']||new Set();
@@ -1470,6 +1485,7 @@ function applyFilters(){
     return true;
   });
   document.getElementById('f-count').textContent=fAct.length;
+  updateFilterLabels();
   renderAll();
 }
 
@@ -2739,7 +2755,7 @@ function handleFile(input){
 }
 
 // ── SETTINGS ─────────────────────────────────────────────────────────────────
-const DEF={title:'Strategos',subtitle:'Plano Estratégico',refDate:'',logo:'',
+const DEF={title:'Strategos',subtitle:'Plano Estratégico',refDate:'',logo:'',filterLabels:{},
   colors:[
     {label:'Cor primária',key:'--navy',val:'#002E5E'},
     {label:'Cor secundária',key:'--green',val:'#95BB42'},
