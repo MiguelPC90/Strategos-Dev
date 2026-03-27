@@ -111,7 +111,8 @@ tr.hover-row:hover td{background:var(--bg2)}
 .gantt-table .g-sticky-3{position:sticky;left:264px;z-index:2;background:var(--bg);}
 .gantt-table .g-sticky-4{position:sticky;left:352px;z-index:2;background:var(--bg);}
 .gantt-table .g-sticky-5{position:sticky;left:440px;z-index:2;background:var(--bg);}
-.gantt-table th.g-sticky,.gantt-table th.g-sticky-2,.gantt-table th.g-sticky-3,.gantt-table th.g-sticky-4,.gantt-table th.g-sticky-5{z-index:4}
+/* Header sticky-left cells: keep navy bg and float above td sticky cells */
+.gantt-table th.g-sticky,.gantt-table th.g-sticky-2,.gantt-table th.g-sticky-3,.gantt-table th.g-sticky-4,.gantt-table th.g-sticky-5{z-index:4;background:var(--navy)}
 .gantt-table{border-collapse:collapse;font-size:12px;min-width:800px;width:100%}
 .gantt-table th{background:var(--navy);color:#fff;padding:6px 8px;font-size:10px;font-weight:500;white-space:nowrap;border-right:1px solid rgba(255,255,255,.12);position:sticky;top:0;z-index:3}
 .gantt-table td{padding:4px 8px;border-bottom:1px solid var(--border);vertical-align:middle;white-space:nowrap}
@@ -127,7 +128,7 @@ tr.hover-row:hover td{background:var(--bg2)}
 .g-bar{position:absolute;border-radius:2px}
 .g-baseline{top:5px;height:6px;opacity:.3}
 .g-real{top:14px;height:7px}
-.g-today{position:absolute;top:0;bottom:0;width:2px;background:rgba(255,0,0,.6);z-index:5;pointer-events:none}
+.g-today{position:absolute;top:0;bottom:0;width:2px;background:rgba(255,0,0,.6);z-index:1;pointer-events:none}
 .gantt-month-hdr{text-align:center;font-size:10px;padding:3px 2px;border-right:1px solid rgba(255,255,255,.12)}
 .gantt-legend{display:flex;gap:14px;margin-bottom:8px;flex-wrap:wrap}
 .gantt-legend span{display:flex;align-items:center;gap:5px;font-size:12px;color:var(--text2)}
@@ -3521,10 +3522,11 @@ function syncPMData(){
   ALL_GANTT = PM_DATA.filter(r=>!r._deleted).map(r=>{
     const {_idx,_deleted,_new,notes,...rest}=r; return rest;
   });
-  // Rebuild ALL_ACT from ALL_GANTT N4 rows
-  const today = new Date(); today.setHours(0,0,0,0);
+  // Rebuild ALL_ACT from ALL_GANTT N4 rows (include all filter fields)
   ALL_ACT = ALL_GANTT.filter(r=>r.nivel===4).map(r=>({
-    nome:r.nome, n1:r.n1, n2:r.n2, n3:r.n3, id1:r.id1, id2:r.id2,
+    nome:r.nome, n0:r.n0, n1:r.n1, n2:r.n2, n3:r.n3,
+    id0:r.id0, id1:r.id1, id2:r.id2,
+    bs:r.bs, bf:r.bf, rs:r.rs, rf:r.rf,
     pct:r.pct, pct_prev:r.pct_prev||r.pct, finish:r.rf||r.bf,
     status:r.status, sponsor:r.sponsor, owner:r.owner
   }));
@@ -3532,6 +3534,9 @@ function syncPMData(){
 
 function saveToSession(){
   syncPMData();
+  recomputeHierarchy(ALL_GANTT);
+  syncActFromGantt();
+  applyFilters();  // refreshes fAct/fGantt and re-renders all tabs incl. KPIs
   pmDirty = false;
   document.getElementById('pm-unsaved').classList.remove('show');
   showToast('Guardado! Os outros menus já reflectem as alterações.', 'navy');
