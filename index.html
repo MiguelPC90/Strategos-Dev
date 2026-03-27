@@ -1252,7 +1252,7 @@ function recomputeHierarchy(rows, cutoff){
     }
     const prev=calcPrevisto(row.bs,row.bf,null,null,cd);
     row.pct_prev=prev!==null?Math.round(prev*10)/10:0;
-    row.status=calcStatus(row.pct,row.bf,cd);
+    row.status=calcStatus(row.pct,row.rf||row.bf,cd);
   }
 }
 
