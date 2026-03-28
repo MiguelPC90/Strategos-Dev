@@ -184,6 +184,24 @@ tr.hover-row:hover td{background:var(--bg2)}
 
 @media(max-width:900px){.resumo-grid,.charts-row{grid-template-columns:1fr}.pds-kpi-grid{grid-template-columns:repeat(3,1fr)}.fin-kpi-grid{grid-template-columns:repeat(3,1fr)}}
 @media(max-width:580px){.kpi-2col,.kpi-3col,.pds-kpi-grid,.fin-kpi-grid{grid-template-columns:1fr 1fr}.pds-body{grid-template-columns:1fr}}
+
+/* ── READ-ONLY MODE ── */
+body.pmo-readonly .ro-hide{display:none!important}
+body.pmo-readonly .gpds-fmt-bar{display:none!important}
+body.pmo-readonly .gfin-del-fac,body.pmo-readonly .gfin-del-ct{display:none!important}
+body.pmo-readonly .pm-table input,body.pmo-readonly .pm-table select{pointer-events:none;border-color:transparent!important;background:transparent!important}
+body.pmo-readonly .fin-input{pointer-events:none;border-color:transparent!important;background:transparent!important}
+body.pmo-readonly .gpds-section textarea{pointer-events:none;background:var(--bg2)!important;resize:none}
+body.pmo-readonly .grisk-input{pointer-events:none;border-color:transparent!important;background:transparent!important}
+/* Lock button */
+.lock-btn{background:none;border:1px solid rgba(255,255,255,.25);border-radius:var(--r);padding:6px 10px;color:#fff;cursor:pointer;font-size:15px;line-height:1;display:flex;align-items:center;gap:5px;font-size:12px}
+.lock-btn:hover{background:rgba(255,255,255,.1)}
+/* Password modal */
+.pw-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;display:flex;align-items:center;justify-content:center}
+.pw-modal{background:var(--bg);border-radius:var(--rl);padding:28px 32px;min-width:300px;box-shadow:0 8px 32px rgba(0,0,0,.25)}
+.pw-modal h3{margin:0 0 16px;font-size:16px;color:var(--text)}
+.pw-modal input{width:100%;padding:8px 10px;border:1px solid var(--border2);border-radius:var(--r);background:var(--bg2);color:var(--text);font-size:14px;font-family:inherit;box-sizing:border-box}
+.pw-modal-actions{display:flex;gap:8px;margin-top:16px;justify-content:flex-end}
 @media(max-width:480px){.kpi-3col{grid-template-columns:1fr}.pm-field-row{grid-template-columns:1fr}}
 
 /* ── PROJECT MANAGEMENT ── */
@@ -441,7 +459,8 @@ tr.hover-row:hover td{background:var(--bg2)}
       </div>
     </div>
     <div class="topbar-actions">
-      <button class="btn btn-ghost" onclick="openUpload()">&#8593; Importar Excel</button>
+      <button id="lock-btn" class="lock-btn" onclick="toggleEditMode()" title="Modo de edição">&#128274; Leitura</button>
+      <button class="btn btn-ghost ro-hide" onclick="openUpload()">&#8593; Importar Excel</button>
       <button class="mobile-filter-btn btn btn-ghost" style="display:none" onclick="openFilterDrawer()">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="11" y1="18" x2="13" y2="18"/></svg>
       </button>
@@ -646,9 +665,9 @@ tr.hover-row:hover td{background:var(--bg2)}
     <div style="font-size:13px;color:var(--text2)">Editar plano:
       <select id="gpds-selector" onchange="loadGPDS()" style="padding:5px 8px;font-size:13px;border:1px solid var(--border2);border-radius:var(--r);background:var(--bg);color:var(--text);font-family:inherit;margin-left:6px;min-width:200px"></select>
     </div>
-    <span class="pm-unsaved" id="gpds-unsaved">&#9679; Alterações não guardadas</span>
+    <span class="pm-unsaved ro-hide" id="gpds-unsaved">&#9679; Alterações não guardadas</span>
     <div style="margin-left:auto;display:flex;gap:8px">
-      <button class="btn" style="font-size:12px;background:var(--navy);color:#fff;border-color:var(--navy)" onclick="saveGPDS()">&#128190; Guardar</button>
+      <button class="btn ro-hide" style="font-size:12px;background:var(--navy);color:#fff;border-color:var(--navy)" onclick="saveGPDS()">&#128190; Guardar</button>
       <button class="btn" style="font-size:12px" onclick="exportPDSToExcel()">&#8595; Exportar Excel</button>
     </div>
   </div>
@@ -669,7 +688,7 @@ tr.hover-row:hover td{background:var(--bg2)}
           Compromissos anteriores
         </div>
         <div id="gpds-compromissos-list"></div>
-        <button class="btn" style="font-size:11px;margin-top:8px;width:100%" onclick="addGPDSItem('compromissos')">+ Adicionar compromisso</button>
+        <button class="btn ro-hide" style="font-size:11px;margin-top:8px;width:100%" onclick="addGPDSItem('compromissos')">+ Adicionar compromisso</button>
       </div>
 
       <!-- Principais avanços -->
@@ -679,7 +698,7 @@ tr.hover-row:hover td{background:var(--bg2)}
           Principais avanços
         </div>
         <div id="gpds-avancos-list"></div>
-        <button class="btn" style="font-size:11px;margin-top:8px;width:100%" onclick="addGPDSItem('avancos')">+ Adicionar avanço</button>
+        <button class="btn ro-hide" style="font-size:11px;margin-top:8px;width:100%" onclick="addGPDSItem('avancos')">+ Adicionar avanço</button>
       </div>
 
       <!-- Próximos passos -->
@@ -689,7 +708,7 @@ tr.hover-row:hover td{background:var(--bg2)}
           Próximos passos
         </div>
         <div id="gpds-proximos-list"></div>
-        <button class="btn" style="font-size:11px;margin-top:8px;width:100%" onclick="addGPDSItem('proximos')">+ Adicionar passo</button>
+        <button class="btn ro-hide" style="font-size:11px;margin-top:8px;width:100%" onclick="addGPDSItem('proximos')">+ Adicionar passo</button>
       </div>
 
       <!-- Pontos de atenção -->
@@ -699,7 +718,7 @@ tr.hover-row:hover td{background:var(--bg2)}
           Pontos de atenção
         </div>
         <div id="gpds-atencao-list"></div>
-        <button class="btn" style="font-size:11px;margin-top:8px;width:100%" onclick="addGPDSItem('atencao')">+ Adicionar ponto</button>
+        <button class="btn ro-hide" style="font-size:11px;margin-top:8px;width:100%" onclick="addGPDSItem('atencao')">+ Adicionar ponto</button>
       </div>
 
     </div>
@@ -718,11 +737,11 @@ tr.hover-row:hover td{background:var(--bg2)}
       <button class="chip" id="pm-lvl-3" onclick="setPmLevel(3,this)">N3</button>
       <button class="chip" id="pm-lvl-4" onclick="setPmLevel(4,this)">N4</button>
     </div>
-    <span class="pm-unsaved" id="pm-unsaved" title="Clica 'Guardar e exportar Excel' para persistir as alterações">&#9679; Alterações não guardadas — clica em 'Guardar e exportar Excel'</span>
+    <span class="pm-unsaved ro-hide" id="pm-unsaved" title="Clica 'Guardar e exportar Excel' para persistir as alterações">&#9679; Alterações não guardadas — clica em 'Guardar e exportar Excel'</span>
     <div style="margin-left:auto;display:flex;gap:8px">
-      <button class="btn" style="font-size:12px;font-weight:600;background:var(--bg2)" onclick="openNewProjectModal()">&#10010; Novo projecto</button>
-      <button class="btn" style="font-size:12px" onclick="addRow()">+ Nova linha</button>
-      <button class="btn" style="font-size:12px;background:var(--navy);color:#fff;border-color:var(--navy)" onclick="saveToSession()" title="Guarda na sessão actual (visível nos outros menus)">&#128190; Guardar</button>
+      <button class="btn ro-hide" style="font-size:12px;font-weight:600;background:var(--bg2)" onclick="openNewProjectModal()">&#10010; Novo projecto</button>
+      <button class="btn ro-hide" style="font-size:12px" onclick="addRow()">+ Nova linha</button>
+      <button class="btn ro-hide" style="font-size:12px;background:var(--navy);color:#fff;border-color:var(--navy)" onclick="saveToSession()" title="Guarda na sessão actual (visível nos outros menus)">&#128190; Guardar</button>
       <button class="btn" style="font-size:12px" onclick="exportToExcel()" title="Exporta para ficheiro Excel">&#8595; Exportar Excel</button>
     </div>
   </div>
@@ -849,9 +868,9 @@ tr.hover-row:hover td{background:var(--bg2)}
     <div style="font-size:13px;color:var(--text2)">Plano de acção:
       <select id="grisk-selector" onchange="loadGRisk()" style="padding:5px 8px;font-size:13px;border:1px solid var(--border2);border-radius:var(--r);background:var(--bg);color:var(--text);font-family:inherit;margin-left:6px;min-width:200px"></select>
     </div>
-    <span class="pm-unsaved" id="grisk-unsaved">&#9679; Alterações não guardadas</span>
+    <span class="pm-unsaved ro-hide" id="grisk-unsaved">&#9679; Alterações não guardadas</span>
     <div style="margin-left:auto;display:flex;gap:8px">
-      <button class="btn" style="font-size:12px;background:var(--navy);color:#fff;border-color:var(--navy)" onclick="saveGRisk()">&#128190; Guardar</button>
+      <button class="btn ro-hide" style="font-size:12px;background:var(--navy);color:#fff;border-color:var(--navy)" onclick="saveGRisk()">&#128190; Guardar</button>
       <button class="btn" style="font-size:12px" onclick="exportRiskToExcel()">&#8595; Exportar Excel</button>
     </div>
   </div>
@@ -955,7 +974,7 @@ tr.hover-row:hover td{background:var(--bg2)}
     <div style="font-size:13px;color:var(--text2)">Plano de acção:
       <select id="gfin-selector" onchange="loadGFin()" style="padding:5px 8px;font-size:13px;border:1px solid var(--border2);border-radius:var(--r);background:var(--bg);color:var(--text);font-family:inherit;margin-left:6px;min-width:220px"></select>
     </div>
-    <span class="pm-unsaved" id="gfin-unsaved">&#9679; Alterações não guardadas</span>
+    <span class="pm-unsaved ro-hide" id="gfin-unsaved">&#9679; Alterações não guardadas</span>
     <div style="margin-left:auto;display:flex;gap:8px">
       <div class="chip-row" style="margin-bottom:0">
         <button class="chip active gfin-view-btn" data-v="orcamento">Orçamento</button>
@@ -963,7 +982,7 @@ tr.hover-row:hover td{background:var(--bg2)}
         <button class="chip gfin-view-btn" data-v="facturas">Facturas</button>
       </div>
       <button class="btn" style="font-size:12px" onclick="exportGFin()">&#8595; Exportar Excel</button>
-      <button class="btn" style="font-size:12px;background:var(--navy);color:#fff;border-color:var(--navy)" onclick="saveGFin()">&#128190; Guardar</button>
+      <button class="btn ro-hide" style="font-size:12px;background:var(--navy);color:#fff;border-color:var(--navy)" onclick="saveGFin()">&#128190; Guardar</button>
     </div>
   </div>
 
@@ -1431,6 +1450,31 @@ function buildAllFilters(src){
   buildMs('owner',[...new Set(src.map(d=>d.owner).filter(Boolean))].sort());
   buildMs('sponsor',[...new Set(src.map(d=>d.sponsor).filter(Boolean))].sort());
   buildMs('status',['Concluído','Em dia','Em atraso']);
+}
+
+// ── READ-ONLY / EDIT MODE ─────────────────────────────────────────────────────
+let editMode=false;
+function setEditMode(v){
+  editMode=v;
+  if(v){ document.body.classList.remove('pmo-readonly'); }
+  else  { document.body.classList.add('pmo-readonly'); }
+  const btn=document.getElementById('lock-btn');
+  if(btn) btn.innerHTML=v?'&#128275; Edição':'&#128274; Leitura';
+}
+function toggleEditMode(){
+  if(editMode){ setEditMode(false); return; }
+  const pwd=(CFG.password||'').trim();
+  if(!pwd){ setEditMode(true); return; }
+  document.getElementById('pw-error').style.display='none';
+  document.getElementById('pw-input').value='';
+  document.getElementById('pw-modal-overlay').style.display='flex';
+  setTimeout(()=>document.getElementById('pw-input').focus(),50);
+}
+function closePwModal(){ document.getElementById('pw-modal-overlay').style.display='none'; }
+function submitPw(){
+  const val=document.getElementById('pw-input').value;
+  if(val===(CFG.password||'').trim()){ closePwModal(); setEditMode(true); }
+  else { document.getElementById('pw-error').style.display='block'; }
 }
 
 const FILTER_LABEL_DEFAULTS={n1:'Eixo',n2:'Plano de Acção',owner:'Owner',sponsor:'Sponsor'};
@@ -2837,7 +2881,7 @@ function importSettings(input){
 function resetSettings(){if(!confirm('Repor definições?'))return;CFG=JSON.parse(JSON.stringify(DEF));applyAll();saveCfg();populatePanel();closeSettings();setTimeout(()=>renderCharts(fAct),100);}
 
 // ── INIT ──────────────────────────────────────────────────────────────────────
-loadCfg();applyAll();
+loadCfg();applyAll();setEditMode(false);
 setTimeout(adjustSpacer,100);
 
 // Load data from JSON files
@@ -4903,7 +4947,7 @@ function renderOrcamento(p){
   let html='<div class="card" style="padding:0;overflow:hidden">'
     +'<div style="padding:10px 14px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center">'
     +'<span style="font-size:13px;font-weight:600;color:var(--navy)">Rubricas orçamentais</span>'
-    +'<button class="btn" style="font-size:12px" onclick="addRubrica()">+ Adicionar rubrica</button>'
+    +(editMode?'<button class="btn" style="font-size:12px" onclick="addRubrica()">+ Adicionar rubrica</button>':'')
     +'</div>';
 
   if(!(f.rubricas||[]).length){
@@ -5003,8 +5047,8 @@ function renderContratos(p){
   const f=p.finances;
   const cats=getFinCats(p.n0||'');
   const wrap=document.getElementById('gfin-panel-contratos');
-  let html='<div style="display:flex;justify-content:flex-end;margin-bottom:8px">'
-    +'<button class="btn" style="font-size:12px" onclick="addContrato()">+ Adicionar contrato</button></div>';
+  let html=(editMode?'<div style="display:flex;justify-content:flex-end;margin-bottom:8px">'
+    +'<button class="btn" style="font-size:12px" onclick="addContrato()">+ Adicionar contrato</button></div>':'');
 
   if(!f.contratos.length){
     html+='<div style="text-align:center;padding:2rem;color:var(--text3);font-size:13px">Sem contratos.</div>';
@@ -5121,8 +5165,8 @@ function renderFacturas(p){
   const f=p.finances;
   const wrap=document.getElementById('gfin-panel-facturas');
   const baseMoeda=getBaseMoeda();
-  let html='<div style="display:flex;justify-content:flex-end;margin-bottom:8px">'
-    +'<button class="btn" style="font-size:12px" onclick="addFactura()">+ Adicionar factura</button></div>';
+  let html=(editMode?'<div style="display:flex;justify-content:flex-end;margin-bottom:8px">'
+    +'<button class="btn" style="font-size:12px" onclick="addFactura()">+ Adicionar factura</button></div>':'');
 
   if(!f.facturas.length){
     html+='<div style="text-align:center;padding:2rem;color:var(--text3);font-size:13px">Sem facturas.</div>';
@@ -5724,6 +5768,20 @@ switchTab = function(id, btn){
     <div style="padding:12px 16px;border-top:1px solid var(--border);display:flex;gap:8px;">
       <button class="btn" style="flex:1" onclick="resetFilters();closeFilterDrawer()">&#x2715; Limpar</button>
       <button class="btn" style="flex:1;background:var(--navy);color:#fff;border-color:var(--navy)" onclick="closeFilterDrawer()">Aplicar</button>
+    </div>
+  </div>
+</div>
+
+<!-- PASSWORD MODAL -->
+<div id="pw-modal-overlay" class="pw-modal-overlay" style="display:none" onclick="if(event.target===this)closePwModal()">
+  <div class="pw-modal">
+    <h3>&#128274; Modo de edição</h3>
+    <p style="font-size:13px;color:var(--text2);margin:0 0 12px">Introduz a password para activar a edição.</p>
+    <input type="password" id="pw-input" placeholder="Password" onkeydown="if(event.key==='Enter')submitPw()">
+    <p id="pw-error" style="color:var(--red,#E24B4A);font-size:12px;margin:6px 0 0;display:none">Password incorrecta.</p>
+    <div class="pw-modal-actions">
+      <button class="btn" onclick="closePwModal()">Cancelar</button>
+      <button class="btn" style="background:var(--navy);color:#fff;border-color:var(--navy)" onclick="submitPw()">Entrar</button>
     </div>
   </div>
 </div>
